@@ -27,32 +27,31 @@ public class Place {
         return column;
     }
 
-    public void moveRight(){column++;}
-    public void moveLeft(){column--;}
-    public void moveUp(){row--;}
-    public void moveDown(){row++;}
+    public Place moveRight(){return new Place(this.row,++column);}
+    public Place moveLeft(){return new Place(this.row,--column);}
+    public Place moveUp(){return new Place(--row,this.column);}
+    public Place moveDown(){return new Place(++row,this.column);}
 
-    public void move(TwoPlayerChessBoard.Direction direction){
+    public Place move(TwoPlayerChessBoard.Direction direction){
         switch (direction){
 
-            case Up -> moveUp();
+            case Up: return moveUp();
 
-            case Down -> moveDown();
+            case Down: return moveDown();
 
-            case Left -> moveLeft();
+            case Left: return moveLeft();
 
-            case Right -> moveRight();
+            case Right: return moveRight();
 
-            case LeftUpDiagonal -> {moveLeft(); moveUp();
+            case LeftUpDiagonal :{return moveLeft().moveUp();
             }
-            case LeftDownDiagonal -> {moveLeft(); moveDown();
+            case LeftDownDiagonal :{return moveLeft().moveDown();
             }
-            case RightUpDiagonal -> {moveRight(); moveUp();
+            case RightUpDiagonal :{return moveRight().moveUp();
             }
-            case RightDownDiagonal -> {moveRight(); moveDown();
+            case RightDownDiagonal :{return moveRight().moveDown();
             }
-            case Knight -> throw new IllegalArgumentException(ILLEGAL_MOVE);
-
+            default: throw new IllegalArgumentException(ILLEGAL_MOVE);
         }
     }
 

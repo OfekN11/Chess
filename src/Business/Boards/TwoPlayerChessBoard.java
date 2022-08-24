@@ -43,7 +43,7 @@ public class TwoPlayerChessBoard {
      * @param start       place of the piece you want to move
      * @param finish      where to move the piece
      */
-    public void play(Color playerColor, Place start, Place finish) throws RuntimeException {
+    public void makeAMove(Color playerColor, Place start, Place finish) throws RuntimeException {
         validInBoardPlaces(start);
         validInBoardPlaces(finish);
 
@@ -72,8 +72,7 @@ public class TwoPlayerChessBoard {
 
     public boolean isLegalPieceMovement(Place start, Place finish, Pawn pawn) {
         Direction direction = calculateDirection(start, finish);
-        Place finishPlusOne = new Place(finish); // we need "finishPlusOne" because "isThereAPieceInTheWay" does not check the finish place.
-        finishPlusOne.move(direction);
+        Place finishPlusOne = finish.move(direction); // we need "finishPlusOne" because "isThereAPieceInTheWay" does not check the finish place.
         int rowDifferent = Place.calculateRowDistance(start, finish);
 
         switch (direction) {
@@ -147,10 +146,8 @@ public class TwoPlayerChessBoard {
             if (king.hasMoved())
                 return false;
             ChessPiece rook = direction == Direction.Right ? getPieceInPlace(start.getRow(),8) :  getPieceInPlace(start.getRow(),0);
-            Place finishPlusOne = new Place(finish);
-            Place startPlusOne = new Place(start);
-            finishPlusOne.move(direction);
-            startPlusOne.move(direction);
+            Place finishPlusOne = finish.move(direction);
+            Place startPlusOne = start.move(direction);
             return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start,finishPlusOne,direction) && !isPlaceThreatenByAColor(startPlusOne,opponentColor) && !isPlaceThreatenByAColor(finish,opponentColor);
         }
         return fullRunnerIsLegalMovement(start,finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
@@ -160,8 +157,8 @@ public class TwoPlayerChessBoard {
      * Checks if a full runner piece ,who start in "start" can go to "finish" using the "validDirectionsForPieceType"
      * @param start piece start place
      * @param finish piece start place
-     * @param validDirections The direction the piece is allow to move
-     * @return true if its a legal movement
+     * @param validDirections The direction the piece is allows  to move
+     * @return true if it's a legal movement
      */
     private boolean fullRunnerIsLegalMovement(Place start, Place finish, Set<Direction> validDirections){
         Direction direction = calculateDirection(start, finish);
@@ -176,11 +173,13 @@ public class TwoPlayerChessBoard {
      * @return true if there is a piece between "start" and "finish" not including both, false otherwise.
      */
     private boolean isThereAPieceBetween(Place start, Place finish, Direction direction) {
-        Place startCopy = new Place(start);
-        startCopy.move(direction);
-        while (!startCopy.equals(finish))
-            if (getPieceInPlace(startCopy) != null)
+        start = start.move(direction);
+        while (!start.equals(finish)) {
+            if (getPieceInPlace(start) != null)
                 return true;
+            else
+                start = start.move(direction);
+        }
         return false;
     }
 
@@ -224,7 +223,7 @@ public class TwoPlayerChessBoard {
 
 
     /**
-     * This function move the piece on the board, without validating rules, it replace the start place with a null
+     * This function move the piece on the board, without validating rules, it replaces the start place with a null
      *
      * @param start  where the piece at
      * @param finish where to move it
@@ -240,7 +239,7 @@ public class TwoPlayerChessBoard {
 
     /**
      * this function should only be called from "moveAPiece", This function is continuation of special case of movingAPiece
-     *  
+     *
      */
     private void moveAKing(Place start, Place finish) {
         Direction direction = calculateDirection(start, finish);
@@ -272,14 +271,34 @@ public class TwoPlayerChessBoard {
     }
 
     /**
-     * @param place a place you want to check if is threaten by the color
-     * @param color the color that you want to check if he is threaten on the place
-     * @return true if the color is threaten on the place, false otherwise
+     * @param place a place you want to check if is threatened by the color
+     * @param color the color that you want to check if he is threatened on the place
+     * @return true if the color is threatened on the place, false otherwise
      */
     private boolean isPlaceThreatenByAColor(Place place, Color color) {
         boolean placeThreaten = false;
         for (int i = 0; i < 8 & !placeThreaten; i++) {
             for (int j = 0; j < 8 & !placeThreaten; j++) {
+                Place piecePlace = new Place(i, j);
+                ChessPiece piece = getPieceInPlace(piecePlace);
+                if (piece instanceof King) {
+                    placeThreaten = color != piece.getColor() && Place.calculateRowDistance(place, piecePlace) < 2 && Place.calculateColumnDistance(place, piecePlace) < 2;
+                } else
+                    placeThreaten = piece.getColor() != color && isLegalMove(piecePlace, place, color);
+            }
+        }
+        return placeThreaten;
+    }
+
+    /**
+     *
+     * @param playerColor
+     * @return
+     */
+    private Set<Place> getPlacesToPreventChess(Color playerColor){
+        Set<Place> output = new HashSet<>();
+        for (int i = 0; i < 8 ; i++) {
+            for (int j = 0; j < 8 ; j++) {
                 Place piecePlace = new Place(i, j);
                 ChessPiece piece = getPieceInPlace(piecePlace);
                 if (piece instanceof King) {
