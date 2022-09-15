@@ -1,10 +1,15 @@
 package Business.ChessPieces;
 
 import Business.Boards.TwoPlayerChessBoard;
+import Business.Color;
 import Business.Place;
 
 public class Pawn  extends ChessPiece{
 
+
+    public Pawn(Color color) {
+        super(color);
+    }
 
     @Override
     public boolean isLegalMove(Place origin, Place to, TwoPlayerChessBoard board) {

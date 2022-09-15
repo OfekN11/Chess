@@ -1,22 +1,35 @@
 package Business;
 
-import Business.Boards.TwoPlayerChessBoard;
+import java.util.*;
 
+
+/**
+ * this class represent place on the board
+ */
 public class Place {
-    private static final String ILLEGAL_MOVE = "Illegal move";
 
+    public enum Direction {Up, Down, Left, Right, LeftUpDiagonal, LeftDownDiagonal, RightUpDiagonal, RightDownDiagonal, Knight}
 
-    private int row;
-    private int column;
+    // if the player give up we will send that
+    public static final Place GIVE_UP_PLACE = new Place(-1,-1);
 
-    public Place(int row, int column) {
-        this.row = row;
-        this.column = column;
+    private static final List<List<Place>> places = new ArrayList<>();
+
+    static {
+        for (int i = 0; i < 8; i++) {
+            places.add(new ArrayList<>());
+            for (int j = 0; j < 8; j++) {
+                places.get(i).add(new Place(i, j));
+            }
+        }
     }
 
-    public Place(Place place) {
-        this.row = place.row;
-        this.column= place.column;
+    private final int row;
+    private final int column;
+
+    private Place(int row, int column) {
+        this.row = row;
+        this.column = column;
     }
 
     public int getRow() {
@@ -27,45 +40,124 @@ public class Place {
         return column;
     }
 
-    public Place moveRight(){return new Place(this.row,++column);}
-    public Place moveLeft(){return new Place(this.row,--column);}
-    public Place moveUp(){return new Place(--row,this.column);}
-    public Place moveDown(){return new Place(++row,this.column);}
+    public Place moveRight() {
+        return getPlace(this.row, column + 1);
+    }
 
-    public Place move(TwoPlayerChessBoard.Direction direction){
-        switch (direction){
+    public Place moveLeft() {
+        return getPlace(this.row, column - 1);
+    }
 
-            case Up: return moveUp();
+    public Place moveUp() {
+        return getPlace(row - 1, this.column);
+    }
 
-            case Down: return moveDown();
+    public Place moveDown() {
+        return getPlace(row + 1, this.column);
+    }
 
-            case Left: return moveLeft();
+    public Place move(Direction direction) {
+        switch (direction) {
 
-            case Right: return moveRight();
+            case Up:
+                return moveUp();
 
-            case LeftUpDiagonal :{return moveLeft().moveUp();
+            case Down:
+                return moveDown();
+
+            case Left:
+                return moveLeft();
+
+            case Right:
+                return moveRight();
+
+            case LeftUpDiagonal: {
+                return moveLeft().moveUp();
             }
-            case LeftDownDiagonal :{return moveLeft().moveDown();
+            case LeftDownDiagonal: {
+                return moveLeft().moveDown();
             }
-            case RightUpDiagonal :{return moveRight().moveUp();
+            case RightUpDiagonal: {
+                return moveRight().moveUp();
             }
-            case RightDownDiagonal :{return moveRight().moveDown();
+            case RightDownDiagonal: {
+                return moveRight().moveDown();
             }
-            default: throw new IllegalArgumentException(ILLEGAL_MOVE);
+            default:
+                throw new IllegalArgumentException(MessagesLibrary.ILLEGAL_MOVE);
         }
     }
 
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         if (!(o instanceof Place other))
             return false;
-        return  this.column == other.column & this.row == other.row;
+        return this.column == other.column & this.row == other.row;
     }
 
-    public static int calculateRowDistance(Place place1,Place place2){
-        return Math.abs(place1.row- place2.row);
+    public static int calculateRowDistance(Place place1, Place place2) {
+        return Math.abs(place1.row - place2.row);
     }
-    public static int calculateColumnDistance(Place place1,Place place2){
-        return Math.abs(place1.column- place2.column);
+
+    public static int calculateColumnDistance(Place place1, Place place2) {
+        return Math.abs(place1.column - place2.column);
+    }
+
+    public static Place getPlace(int row, int column) {
+
+        return places.get(row).get(column);
+    }
+
+
+    /**
+     * @param start starting place
+     * @param end   ending Place
+     * @return all the places between start and end, includes start, exclude end!
+     */
+    public static Set<Place> getPath(Place start, Place end) {
+        Place next = start;
+        Set<Place> output = new HashSet<>();
+        Direction direction = calculateDirection(start, end);
+        if (direction != Direction.Knight)
+            while (!next.equals(end)) {
+                output.add(next);
+                next = next.move(direction);
+            }
+        return output;
+    }
+
+
+
+
+
+
+    /**
+     * calculate the direction of the movement
+     * @param start from where
+     * @param finish to where
+     * @return the direction of the move
+     */
+    public static Direction calculateDirection(Place start, Place finish) throws RuntimeException {
+        if (start.equals(finish))
+            throw new RuntimeException("please choose two different locations");
+
+        if (start.getRow() == finish.getRow())
+            return start.getColumn() < finish.getColumn() ? Direction.Right : Direction.Left;
+
+        else if (start.getColumn() == finish.getColumn())
+            return start.getRow() < finish.getRow() ? Direction.Down : Direction.Up;
+
+        else if (start.getRow() - start.getColumn() == finish.getRow() - finish.getColumn())
+            return start.getRow() < finish.getRow() ? Direction.RightDownDiagonal : Direction.LeftUpDiagonal;
+
+        else if (start.getRow() + start.getColumn() == finish.getRow() + finish.getColumn()) {
+            return start.getRow() < finish.getRow() ? Direction.RightUpDiagonal : Direction.LeftDownDiagonal;
+        } else {
+            int rowDifferent = Place.calculateRowDistance(start, finish);
+            int columnDifferent = Place.calculateColumnDistance(start, finish);
+            if (rowDifferent < 3 && columnDifferent < 3 && rowDifferent != columnDifferent)
+                return Direction.Knight;
+        }
+        throw new RuntimeException(MessagesLibrary.ILLEGAL_MOVE);
     }
 }
