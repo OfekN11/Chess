@@ -103,6 +103,16 @@ class TwoPlayerChessBoardTest {
             emptyLine +
             emptyLine +
             "R---K---\n";
+
+    private final String table10 =
+            "Q---k--r\n" +
+            "Rp------\n" +
+            "rP------\n" +
+            emptyLine +
+            emptyLine +
+            emptyLine +
+            emptyLine +
+            "R---K---\n";
     private TwoPlayerChessBoard board;
 
 
@@ -110,11 +120,18 @@ class TwoPlayerChessBoardTest {
     void isInCheckMate() {
         board = new TwoPlayerChessBoard(table7);
         assertFalse(board.isInCheckMate(Color.Black));
-        assertFalse(board.isInCheckMate(Color.White));
+        try {
+            //should throw exception because there is no chess
+            board.isInCheckMate(Color.White);
+            fail();
+        }catch (RuntimeException ignored){
+
+        }
         board = new TwoPlayerChessBoard(table9);
         assertTrue(board.isInCheckMate(Color.Black));
         board.moveAPiece(Place.getPlace(0,7),Place.getPlace(2,1),()->'Q');
         assertFalse(board.isInCheckMate(Color.Black));
+
     }
 
     @Test
@@ -169,11 +186,10 @@ class TwoPlayerChessBoardTest {
     }
 
     private void pawnOneMoveTest() {
-        //black
         board = new TwoPlayerChessBoard(table4);
         assertTrue(board.isLegalMove(Place.getPlace(1,6),Place.getPlace(2,6),Color.Black));
-        assertTrue(board.isLegalMove(Place.getPlace(7,5),Place.getPlace(6,5),Color.White));
-        assertTrue(board.isLegalMove(Place.getPlace(6,5),Place.getPlace(5,5),Color.White));
+        assertTrue(board.isLegalMove(Place.getPlace(7,6),Place.getPlace(6,6),Color.White));
+
         board = new TwoPlayerChessBoard(table3);
         assertFalse(board.isLegalMove(Place.getPlace(3,2),Place.getPlace(4,2),Color.Black));
         assertFalse(board.isLegalMove(Place.getPlace(4,2),Place.getPlace(3,2),Color.White));
@@ -183,7 +199,7 @@ class TwoPlayerChessBoardTest {
         board = new TwoPlayerChessBoard(table4);
         assertTrue(board.isLegalMove(Place.getPlace(1,6),Place.getPlace(3,6),Color.Black));
         assertFalse(board.isLegalMove(Place.getPlace(3,6),Place.getPlace(5,6),Color.Black));
-        assertTrue(board.isLegalMove(Place.getPlace(7,5),Place.getPlace(5,5),Color.White));
+        assertTrue(board.isLegalMove(Place.getPlace(7,6),Place.getPlace(5,6),Color.White));
         assertFalse(board.isLegalMove(Place.getPlace(5,5),Place.getPlace(3,5),Color.White));
 
         board = new TwoPlayerChessBoard(table5);
@@ -201,9 +217,12 @@ class TwoPlayerChessBoardTest {
     private void pawnEatingTest() {
         board = new TwoPlayerChessBoard(table3);
         assertFalse(board.isLegalMove(Place.getPlace(4,2),Place.getPlace(3,3),Color.White));
-        assertTrue(board.isLegalMove(Place.getPlace(4,2),Place.getPlace(3,1),Color.White));
+        assertFalse(board.isLegalMove(Place.getPlace(4,2),Place.getPlace(3,1),Color.White));
         assertFalse(board.isLegalMove(Place.getPlace(3,2),Place.getPlace(4,3),Color.Black));
-        assertTrue(board.isLegalMove(Place.getPlace(3,2),Place.getPlace(4,1),Color.Black));
+
+        board = new TwoPlayerChessBoard(table10);
+        assertFalse(board.isLegalMove(Place.getPlace(1,1),Place.getPlace(2,0),Color.Black));
+        assertTrue(board.isLegalMove(Place.getPlace(2,1),Place.getPlace(1,0),Color.White));
     }
 
     @Test
