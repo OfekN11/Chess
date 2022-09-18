@@ -13,4 +13,11 @@ public class King extends ChessPiece{
     public boolean isLegalMove(Place origin, Place to, TwoPlayerChessBoard board) {
         return board.isLegalPieceMovement(origin,to,this);
     }
+
+    private King(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+    public ChessPiece clone() {
+        return new King(getColor(),hasMoved());
+    }
 }

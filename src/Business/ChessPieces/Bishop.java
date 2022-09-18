@@ -9,9 +9,18 @@ public class Bishop  extends ChessPiece{
         super(color);
     }
 
+    private Bishop(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+
     @Override
     public boolean isLegalMove(Place origin, Place to, TwoPlayerChessBoard board) {
         return board.isLegalPieceMovement(origin,to,this);
+    }
+
+    @Override
+    public ChessPiece clone() {
+        return new Bishop(getColor(),hasMoved());
     }
 
 }

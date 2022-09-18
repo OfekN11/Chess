@@ -14,4 +14,11 @@ public class Queen  extends ChessPiece{
         return board.isLegalPieceMovement(origin,to,this);
 
     }
+
+    private Queen(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+    public ChessPiece clone() {
+        return new Queen(getColor(),hasMoved());
+    }
 }

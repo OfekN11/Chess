@@ -11,7 +11,7 @@ public class Place {
     public enum Direction {Up, Down, Left, Right, LeftUpDiagonal, LeftDownDiagonal, RightUpDiagonal, RightDownDiagonal, Knight}
 
     // if the player give up we will send that
-    public static final Place GIVE_UP_PLACE = new Place(-1,-1);
+    public static final Place GIVE_UP_PLACE = new Place(-1, -1);
 
     private static final List<List<Place>> places = new ArrayList<>();
 
@@ -127,13 +127,10 @@ public class Place {
     }
 
 
-
-
-
-
     /**
      * calculate the direction of the movement
-     * @param start from where
+     *
+     * @param start  from where
      * @param finish to where
      * @return the direction of the move
      */
@@ -151,7 +148,7 @@ public class Place {
             return start.getRow() < finish.getRow() ? Direction.RightDownDiagonal : Direction.LeftUpDiagonal;
 
         else if (start.getRow() + start.getColumn() == finish.getRow() + finish.getColumn()) {
-            return start.getRow() < finish.getRow() ? Direction.RightUpDiagonal : Direction.LeftDownDiagonal;
+            return start.getRow() < finish.getRow() ? Direction.LeftDownDiagonal : Direction.RightUpDiagonal;
         } else {
             int rowDifferent = Place.calculateRowDistance(start, finish);
             int columnDifferent = Place.calculateColumnDistance(start, finish);

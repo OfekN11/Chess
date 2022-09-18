@@ -99,7 +99,10 @@ public class TwoPlayerChessBoard {
         pieces = new ChessPiece[8][8];
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                this.pieces[i][j] = board.getPieceInPlace(i,j);
+                if (board.getPieceInPlace(i,j)!=null)
+                    this.pieces[i][j] = board.getPieceInPlace(i,j).clone();
+                else
+                    this.pieces[i][j] = null;
             }
         }
 
@@ -140,17 +143,7 @@ public class TwoPlayerChessBoard {
         }catch (Exception e) {
             return false;
         }
-        Place finishPlusOne;
 
-        try { // put in try and catch cause +1 to a direction can be out of the board.
-             finishPlusOne = finish.move(direction); // we need "finishPlusOne" because "isThereAPieceInTheWay" does not check the finish place.
-
-        }catch (Exception e){// case when +1 of the direction is out of the table, so we just act as the finish is finish, so we check if there is a piece in finish manually
-            if (getPieceInPlace(finish) != null)
-                return true;
-            else
-                finishPlusOne = finish;
-        }
         int rowDifferent = Place.calculateRowDistance(start, finish);
 
         switch (direction) {
@@ -158,7 +151,7 @@ public class TwoPlayerChessBoard {
             case Up:
             case Down:
 
-                if (isThereAPieceBetween(start, finishPlusOne, direction))
+                if (isThereAPieceBetween(start, finish,direction,true))
                     return false;
 
                 switch (rowDifferent) {
@@ -232,10 +225,9 @@ public class TwoPlayerChessBoard {
         if (columnDistance == 2) {
             if (king.hasMoved())
                 return false;
-            ChessPiece rook = direction == Direction.Right ? getPieceInPlace(start.getRow(), 8) : getPieceInPlace(start.getRow(), 0);
-            Place finishPlusOne = finish.move(direction);
+            ChessPiece rook = direction == Direction.Right ? getPieceInPlace(start.getRow(), 7) : getPieceInPlace(start.getRow(), 0);
             Place startPlusOne = start.move(direction);
-            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start, finishPlusOne, direction) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor);
+            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start,finish, direction,true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor);
         }
         return fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish,getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
     }
@@ -258,7 +250,7 @@ public class TwoPlayerChessBoard {
             return false;
         }
         ChessPiece piece = getPieceInPlace(start);
-        boolean validateRoute = validDirections.contains(direction) && !isThereAPieceBetween(start, finish, direction) ;
+        boolean validateRoute = validDirections.contains(direction) && !isThereAPieceBetween(start, finish, direction,false) ;
         boolean emptyPlaceOrDifferentColor =  getPieceInPlace(finish) ==null || getPieceInPlace(finish).getColor() != piece.getColor();
         return validateRoute & emptyPlaceOrDifferentColor;
     }
@@ -267,9 +259,10 @@ public class TwoPlayerChessBoard {
      * @param start     The current Place of a piece you want to move
      * @param finish    Where you want to move the piece
      * @param direction the direction between "start" and "finish", can be calculated by "calculateDirection"
-     * @return true if there is a piece between "start" and "finish" not including both, false otherwise.
+     * @param toIncludeEnd When true the function will check if there is a piece between and start and finish, or in finish, and when false the function will check if there is a piece between and start and finish not care about what in finish
+     * @return true if there is a piece between "start" and "finish" not excluding start.
      */
-    private boolean isThereAPieceBetween(Place start, Place finish, Direction direction) {
+    private boolean isThereAPieceBetween(Place start, Place finish, Direction direction,boolean toIncludeEnd) {
         start = start.move(direction);
         while (!start.equals(finish)) {
             if (getPieceInPlace(start) != null)
@@ -277,7 +270,8 @@ public class TwoPlayerChessBoard {
             else
                 start = start.move(direction);
         }
-        return false;
+
+        return toIncludeEnd ? getPieceInPlace(finish) != null : false ;
     }
 
     public ChessPiece getPieceInPlace(Place place) {
@@ -354,8 +348,8 @@ public class TwoPlayerChessBoard {
                 pieces[start.getRow()][0] = null;
                 pieces[start.getRow()][start.getColumn() - 1].moved();
             } else if (direction == Direction.Right) {
-                pieces[start.getRow()][start.getColumn() + 1] = pieces[start.getRow()][8];
-                pieces[start.getRow()][8] = null;
+                pieces[start.getRow()][start.getColumn() + 1] = pieces[start.getRow()][7];
+                pieces[start.getRow()][7] = null;
                 pieces[start.getRow()][start.getColumn() + 1].moved();
             }
         }
@@ -368,26 +362,48 @@ public class TwoPlayerChessBoard {
     }
 
     /**
-     * @param place a place you want to check if is threatened by the color
-     * @param color the color that you want to check if he is threatening the place
-     * @return true if the color is threatened on the place, false otherwise
+     *
+     * @param place the place you want to check if the {@param color} can move to
+     * @param color the color of the piece you want to check if they can move to {@param place}
+     * @return true if a piece of {@param color} can move to {@param place}
      */
-    private boolean isPlaceThreatenByAColor(Place place, Color color) {
+    private boolean canColorMoveToPlace(Place place, Color color) {
+        return getPieceInPlace(getKingPlace(color)).isLegalMove(getKingPlace(color),place,this) || canColorMoveToPlaceWithoutMovingItsKing(place,color);
+    }
+
+
+    /**
+     *
+     * @param place the place you want to check if the {@param color} can move to
+     * @param color the color of the piece you want to check if they can move to {@param place} without he's king
+     * @return true if a piece of {@param color} can move to {@param place}
+     */
+    private boolean canColorMoveToPlaceWithoutMovingItsKing(Place place, Color color) {
         boolean placeThreaten = false;
         for (int i = 0; i < 8 & !placeThreaten; i++) {
             for (int j = 0; j < 8 & !placeThreaten; j++) {
                 Place piecePlace = Place.getPlace(i, j);
                 ChessPiece piece = getPieceInPlace(piecePlace);
-                if (piece == null)
+                if (piece == null || piece instanceof King)
                     continue;
-
-                if (piece instanceof King) {
-                    placeThreaten = color == piece.getColor() && piece.isLegalMove(piecePlace,place,this);
-                } else
+                 else
                     placeThreaten = piece.getColor() == color && piece.isLegalMove(piecePlace, place,this);
             }
         }
         return placeThreaten;
+    }
+
+    /**
+     * @param place a place you want to check if is threatened by the color
+     * @param color the color that you want to check if he is threatening the place
+     * @return true if the color is threatened on the place, false otherwise
+     */
+    private boolean isPlaceThreatenByAColor(Place place, Color color) {
+        Place kingPlace =  getKingPlace(color);
+        boolean isKingThreatenThePlace = Place.calculateRowDistance(place,kingPlace)<=1 && Place.calculateColumnDistance(place,kingPlace)<=1;
+
+        // for all the pieces, but the king, if the piece is threatening the place its means it can go there, for the so we just need to check for the king
+        return isKingThreatenThePlace ||  canColorMoveToPlaceWithoutMovingItsKing(place,color) ;
     }
 
     /**
@@ -459,11 +475,16 @@ public class TwoPlayerChessBoard {
             return false;
 
         for (Place place : getPlacesToBlockChess(color)) {
-            if (isPlaceThreatenByAColor(place, color))
+            if (canColorMoveToPlace(place, color))
                 return false;
         }
         return getKingMovingOptions(color).isEmpty();
     }
+
+
+
+
+
 
 
     /**
@@ -474,10 +495,28 @@ public class TwoPlayerChessBoard {
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++) {
                 ChessPiece piece = getPieceInPlace(i, j);
-                if (piece.getColor().equals(color) && !(piece instanceof King) && !(piece instanceof Pawn))
-                    return false;
+
+                //every tool can move always but the pawn and the king
+                if (piece != null && piece.getColor().equals(color) && !(piece instanceof King)) {
+                    if (!(piece instanceof Pawn))
+                        //return false if the player (color) has a piece other than a king and pawns
+                        return false;
+
+                    // check if the pawn can move
+                    int toAdd = color.equals(Color.White) ? -1 : 1; //up for white, down for black
+                    boolean canEatLeft=false,canEatRight=false,canMoveForeword=false;
+                    Place pawnPlace = Place.getPlace(i,j);
+                    if (j>0)
+                        canEatLeft = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j-1),color);
+                    if (j<7)
+                        canEatRight = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j+1),color);
+                    canMoveForeword = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j),color);
+
+                    if (canEatRight | canEatLeft | canMoveForeword)
+                        return false;
+                }
             }
-        return getKingMovingOptions(color).isEmpty() && isKingThreaten(color);
+        return getKingMovingOptions(color).isEmpty() && !isKingThreaten(color);
     }
 
 }

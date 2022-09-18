@@ -16,5 +16,10 @@ public class Pawn  extends ChessPiece{
         return board.isLegalPieceMovement(origin,to, this);
     }
 
-
+    private Pawn(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+    public ChessPiece clone() {
+        return new Pawn(getColor(),hasMoved());
+    }
 }

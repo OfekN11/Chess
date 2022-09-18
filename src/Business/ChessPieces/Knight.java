@@ -14,4 +14,11 @@ public class Knight  extends ChessPiece{
         return board.isLegalPieceMovement(origin,to,this);
 
     }
+
+    private Knight(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+    public ChessPiece clone() {
+        return new Knight(getColor(),hasMoved());
+    }
 }

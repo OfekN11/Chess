@@ -14,4 +14,11 @@ public class Rook  extends ChessPiece{
         return board.isLegalPieceMovement(origin,to,this);
 
     }
+
+    private Rook(Color color,boolean hasMoved) {
+        super(color,hasMoved);
+    }
+    public ChessPiece clone() {
+        return new Rook(getColor(),hasMoved());
+    }
 }
