@@ -13,20 +13,20 @@ import java.util.Map;
 public class GameManager {
     TwoPlayerChessBoard board;
     private final Map<Color, IOController> colorIOControllerMap = new HashMap<>();
-
-
+    //private final FinishCallback finishCallBack;
 
     /**
      * @param whiteIoController an Io interface to communicate with the white player
      * @param blackIoController an Io interface to communicate with the black player
      */
-    public GameManager(IOController whiteIoController, IOController blackIoController) {
+    public GameManager(TwoPlayerChessBoard board, IOController whiteIoController, IOController blackIoController ) {
+        this.board = board;
         colorIOControllerMap.put(Color.White, whiteIoController);
         colorIOControllerMap.put(Color.Black, blackIoController);
+        //this.finishCallBack = callBack;
     }
 
     public void startGame() {
-         board = new TwoPlayerChessBoard();
         GameScore gameScore = gameLoop();
         finishGame(gameScore);
     }
@@ -93,6 +93,7 @@ public class GameManager {
                 colorIOControllerMap.get(opponent).presentMsg(MessagesLibrary.PAT_MASSAGE);
             }
         }
+        //finishCallBack.call();
     }
 
     /**

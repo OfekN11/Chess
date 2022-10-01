@@ -6,5 +6,6 @@ public interface IOController {
     public Place getPlace(String msgToPresent);
     public void presentMsg(String msg);
 
+    public void plsWait();
     char getPromotionChar();
 }

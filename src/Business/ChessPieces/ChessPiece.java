@@ -34,4 +34,6 @@ public abstract class ChessPiece {
     }
 
     public abstract ChessPiece clone();
+
+
 }

@@ -190,7 +190,9 @@ public class TwoPlayerChessBoard {
 
     public boolean isLegalPieceMovement(Place start, Place finish, Knight knight) {
         try {
-            return Place.calculateDirection(start, finish) == Direction.Knight;
+            boolean landingOnAllies = getPieceInPlace(finish) != null && getPieceInPlace(finish).getColor() == knight.getColor();
+            boolean legalDirection = Place.calculateDirection(start, finish) == Direction.Knight;
+            return !landingOnAllies && legalDirection;
         }catch (Exception e){
             return false;
         }
@@ -227,7 +229,7 @@ public class TwoPlayerChessBoard {
                 return false;
             ChessPiece rook = direction == Direction.Right ? getPieceInPlace(start.getRow(), 7) : getPieceInPlace(start.getRow(), 0);
             Place startPlusOne = start.move(direction);
-            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start,finish, direction,true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor);
+            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start,finish, direction,true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor) && !isPlaceThreatenByAColor(start,opponentColor);
         }
         return fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish,getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
     }
