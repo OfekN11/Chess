@@ -36,56 +36,63 @@ public class TwoPlayerChessBoard {
     private Place blackKingPlace;
 
 
-
     // Constructors
-    public TwoPlayerChessBoard(){
+    public TwoPlayerChessBoard() {
         pieces = new ChessPiece[8][8];
         parseStringToPieces(NORMAL_PIECE_ORDER_STRING);
     }
 
 
-    public TwoPlayerChessBoard(String stringToParse){
+    public TwoPlayerChessBoard(String stringToParse) {
         pieces = new ChessPiece[8][8];
         parseStringToPieces(stringToParse);
     }
 
-    public void parseStringToPieces(String stringToParse){
-        int row = 0, column =0;
-        for (int i = 0; i < stringToParse.length(); i++,column++) {
-            if (stringToParse.charAt(i) == '\n')
-                 {row++ ; column = -1; continue;} // going threw the next line column will be zero at the next turn
+    /**
+     * This function initialize the pieces array
+     *
+     * @param stringToParse a string represent the position of the pieces on the board
+     */
+    public void parseStringToPieces(String stringToParse) {
+        int row = 0, column = 0;
+        for (int i = 0; i < stringToParse.length(); i++, column++) {
+            if (stringToParse.charAt(i) == '\n') {
+                row++;
+                column = -1;
+                continue;
+            } // going threw the next line column will be zero at the next turn
 
             try {
 
-                validBoardPlace(Place.getPlace(row,column));
-            }catch (Exception e){
+                validBoardPlace(Place.getPlace(row, column));
+            } catch (Exception e) {
                 throw new RuntimeException(MessagesLibrary.ILLEGAL_STRING);
             }
 
-            switch (stringToParse.charAt(i)){
+            switch (stringToParse.charAt(i)) {
                 case 'P' -> pieces[row][column] = new Pawn(Color.White);
-                case 'p' ->  pieces[row][column] = new Pawn(Color.Black);
-                case 'R' ->  pieces[row][column] = new Rook(Color.White);
-                case 'r' ->  pieces[row][column] = new Rook(Color.Black);
-                case 'B' ->  pieces[row][column] = new Bishop(Color.White);
-                case 'b' ->  pieces[row][column] = new Bishop(Color.Black);
-                case 'H' ->  pieces[row][column] = new Knight(Color.White);
-                case 'h' ->  pieces[row][column] = new Knight(Color.Black);
-                case 'K' ->  {pieces[row][column] = new King(Color.White); whiteKingPlace =Place.getPlace(row,column);}
-                case 'k' ->  {pieces[row][column] = new King(Color.Black); blackKingPlace = Place.getPlace(row,column);}
-                case 'Q' ->  pieces[row][column] = new Queen(Color.White);
-                case 'q' ->  pieces[row][column] = new Queen(Color.Black);
-                case '-' ->   pieces[row][column] = null;
+                case 'p' -> pieces[row][column] = new Pawn(Color.Black);
+                case 'R' -> pieces[row][column] = new Rook(Color.White);
+                case 'r' -> pieces[row][column] = new Rook(Color.Black);
+                case 'B' -> pieces[row][column] = new Bishop(Color.White);
+                case 'b' -> pieces[row][column] = new Bishop(Color.Black);
+                case 'H' -> pieces[row][column] = new Knight(Color.White);
+                case 'h' -> pieces[row][column] = new Knight(Color.Black);
+                case 'K' -> {
+                    pieces[row][column] = new King(Color.White);
+                    whiteKingPlace = Place.getPlace(row, column);
+                }
+                case 'k' -> {
+                    pieces[row][column] = new King(Color.Black);
+                    blackKingPlace = Place.getPlace(row, column);
+                }
+                case 'Q' -> pieces[row][column] = new Queen(Color.White);
+                case 'q' -> pieces[row][column] = new Queen(Color.Black);
+                case '-' -> pieces[row][column] = null;
 
             }
         }
     }
-
-
-
-    /**
-     * reset the boards, and pieces so a new game can begin
-     */
 
 
     /**
@@ -99,8 +106,8 @@ public class TwoPlayerChessBoard {
         pieces = new ChessPiece[8][8];
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                if (board.getPieceInPlace(i,j)!=null)
-                    this.pieces[i][j] = board.getPieceInPlace(i,j).clone();
+                if (board.getPieceInPlace(i, j) != null)
+                    this.pieces[i][j] = board.getPieceInPlace(i, j).clone();
                 else
                     this.pieces[i][j] = null;
             }
@@ -108,7 +115,7 @@ public class TwoPlayerChessBoard {
 
         this.blackKingPlace = board.blackKingPlace;
         this.whiteKingPlace = board.whiteKingPlace;
-        moveAPiece(start, finish,()->'Q');
+        moveAPiece(start, finish, () -> 'Q');
     }
 
     // Methods
@@ -120,6 +127,7 @@ public class TwoPlayerChessBoard {
 
     /**
      * design pattern visitor.
+     * this function calls piece.isLegalPieceMovement, which returns true if the certain piece is allow to move to this place (by movement rules only)
      */
     public boolean isLegalMove(Place start, Place finish, Color playerColor) {
         validBoardPlace(start);
@@ -128,10 +136,10 @@ public class TwoPlayerChessBoard {
             return false;
         ChessPiece piece = getPieceInPlace(start);
 
-        boolean legalMovement =piece.isLegalMove(start, finish, this);
+        boolean legalMovement = piece.isLegalPieceMove(start, finish, this);
         boolean notCauseASelfCheck = !new TwoPlayerChessBoard(this, start, finish).isKingThreaten(playerColor); // checking that the move is legal for the piece, and that the king is not threaten
 
-        return  legalMovement && notCauseASelfCheck;
+        return legalMovement && notCauseASelfCheck;
     }
 
 
@@ -140,7 +148,7 @@ public class TwoPlayerChessBoard {
         try {
             direction = Place.calculateDirection(start, finish);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
 
@@ -151,7 +159,7 @@ public class TwoPlayerChessBoard {
             case Up:
             case Down:
 
-                if (isThereAPieceBetween(start, finish,direction,true))
+                if (isThereAPieceBetween(start, finish, direction, true))
                     return false;
 
                 switch (rowDifferent) {
@@ -193,7 +201,7 @@ public class TwoPlayerChessBoard {
             boolean landingOnAllies = getPieceInPlace(finish) != null && getPieceInPlace(finish).getColor() == knight.getColor();
             boolean legalDirection = Place.calculateDirection(start, finish) == Direction.Knight;
             return !landingOnAllies && legalDirection;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
 
@@ -214,7 +222,7 @@ public class TwoPlayerChessBoard {
         try {
             direction = Place.calculateDirection(start, finish);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
         Color opponentColor = getOpponentColor(king.getColor());
@@ -229,9 +237,9 @@ public class TwoPlayerChessBoard {
                 return false;
             ChessPiece rook = direction == Direction.Right ? getPieceInPlace(start.getRow(), 7) : getPieceInPlace(start.getRow(), 0);
             Place startPlusOne = start.move(direction);
-            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start,finish, direction,true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor) && !isPlaceThreatenByAColor(start,opponentColor);
+            return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start, finish, direction, true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor) && !isPlaceThreatenByAColor(start, opponentColor);
         }
-        return fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish,getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
+        return fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish, getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
     }
 
     /**
@@ -248,23 +256,23 @@ public class TwoPlayerChessBoard {
         try {
             direction = Place.calculateDirection(start, finish);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
         ChessPiece piece = getPieceInPlace(start);
-        boolean validateRoute = validDirections.contains(direction) && !isThereAPieceBetween(start, finish, direction,false) ;
-        boolean emptyPlaceOrDifferentColor =  getPieceInPlace(finish) ==null || getPieceInPlace(finish).getColor() != piece.getColor();
+        boolean validateRoute = validDirections.contains(direction) && !isThereAPieceBetween(start, finish, direction, false);
+        boolean emptyPlaceOrDifferentColor = getPieceInPlace(finish) == null || getPieceInPlace(finish).getColor() != piece.getColor();
         return validateRoute & emptyPlaceOrDifferentColor;
     }
 
     /**
-     * @param start     The current Place of a piece you want to move
-     * @param finish    Where you want to move the piece
-     * @param direction the direction between "start" and "finish", can be calculated by "calculateDirection"
+     * @param start        The current Place of a piece you want to move
+     * @param finish       Where you want to move the piece
+     * @param direction    the direction between "start" and "finish", can be calculated by "calculateDirection"
      * @param toIncludeEnd When true the function will check if there is a piece between and start and finish, or in finish, and when false the function will check if there is a piece between and start and finish not care about what in finish
      * @return true if there is a piece between "start" and "finish" not excluding start.
      */
-    private boolean isThereAPieceBetween(Place start, Place finish, Direction direction,boolean toIncludeEnd) {
+    private boolean isThereAPieceBetween(Place start, Place finish, Direction direction, boolean toIncludeEnd) {
         start = start.move(direction);
         while (!start.equals(finish)) {
             if (getPieceInPlace(start) != null)
@@ -273,7 +281,7 @@ public class TwoPlayerChessBoard {
                 start = start.move(direction);
         }
 
-        return toIncludeEnd ? getPieceInPlace(finish) != null : false ;
+        return toIncludeEnd ? getPieceInPlace(finish) != null : false;
     }
 
     public ChessPiece getPieceInPlace(Place place) {
@@ -287,8 +295,9 @@ public class TwoPlayerChessBoard {
 
     /**
      * This function move the piece on the board, without validating rules, it replaces the start place with a null
-     * @param start  where the piece at
-     * @param finish where to move it
+     *
+     * @param start                   where the piece at
+     * @param finish                  where to move it
      * @param promotionLetterSupplier in case of a promotion, the supplier should give the letter of the piece he wants to promote to
      */
     public void moveAPiece(Place start, Place finish, Supplier<Character> promotionLetterSupplier) {
@@ -297,14 +306,14 @@ public class TwoPlayerChessBoard {
             moveAKing(start, finish, (King) piece);
         }
         if ((piece instanceof Pawn) && isPromotionNeeded(finish, (Pawn) piece))
-            piece = getPromotionPiece(piece.getColor(),promotionLetterSupplier);
+            piece = getPromotionPiece(piece.getColor(), promotionLetterSupplier);
         piece.moved();
         pieces[finish.getRow()][finish.getColumn()] = piece;
         pieces[start.getRow()][start.getColumn()] = null;
     }
 
     /**
-     *  this function checks if a pawn gets to the end of the board
+     * this function checks if a pawn gets to the end of the board
      */
     private boolean isPromotionNeeded(Place finish, Pawn pawn) {
         return pawn.getColor().equals(Color.White) && finish.getRow() == 0 || pawn.getColor().equals(Color.Black) && finish.getRow() == 7;
@@ -312,7 +321,8 @@ public class TwoPlayerChessBoard {
 
     /**
      * promote a pawn
-     * @param color the color of the pawn that is being promoted
+     *
+     * @param color    the color of the pawn that is being promoted
      * @param supplier a supplier so we will know what kind of piece the player wants to replace the pawn
      * @return The new piece which the player decided to promote the pawn to
      */
@@ -335,6 +345,7 @@ public class TwoPlayerChessBoard {
 
     /**
      * this function should only be called from "moveAPiece", This function is continuation of special case of movingAPiece
+     * and should handle a king movment
      */
     private void moveAKing(Place start, Place finish, King king) {
         Direction direction = Place.calculateDirection(start, finish); // will throw exception if it is illegal move
@@ -364,18 +375,16 @@ public class TwoPlayerChessBoard {
     }
 
     /**
-     *
      * @param place the place you want to check if the {@param color} can move to
      * @param color the color of the piece you want to check if they can move to {@param place}
      * @return true if a piece of {@param color} can move to {@param place}
      */
     private boolean canColorMoveToPlace(Place place, Color color) {
-        return getPieceInPlace(getKingPlace(color)).isLegalMove(getKingPlace(color),place,this) || canColorMoveToPlaceWithoutMovingItsKing(place,color);
+        return getPieceInPlace(getKingPlace(color)).isLegalPieceMove(getKingPlace(color), place, this) || canColorMoveToPlaceWithoutMovingItsKing(place, color);
     }
 
 
     /**
-     *
      * @param place the place you want to check if the {@param color} can move to
      * @param color the color of the piece you want to check if they can move to {@param place} without he's king
      * @return true if a piece of {@param color} can move to {@param place}
@@ -388,8 +397,8 @@ public class TwoPlayerChessBoard {
                 ChessPiece piece = getPieceInPlace(piecePlace);
                 if (piece == null || piece instanceof King)
                     continue;
-                 else
-                    placeThreaten = piece.getColor() == color && piece.isLegalMove(piecePlace, place,this);
+                else
+                    placeThreaten = piece.getColor() == color && piece.isLegalPieceMove(piecePlace, place, this);
             }
         }
         return placeThreaten;
@@ -401,11 +410,11 @@ public class TwoPlayerChessBoard {
      * @return true if the color is threatened on the place, false otherwise
      */
     private boolean isPlaceThreatenByAColor(Place place, Color color) {
-        Place kingPlace =  getKingPlace(color);
-        boolean isKingThreatenThePlace = Place.calculateRowDistance(place,kingPlace)<=1 && Place.calculateColumnDistance(place,kingPlace)<=1;
+        Place kingPlace = getKingPlace(color);
+        boolean isKingThreatenThePlace = Place.calculateRowDistance(place, kingPlace) <= 1 && Place.calculateColumnDistance(place, kingPlace) <= 1;
 
         // for all the pieces, but the king, if the piece is threatening the place its means it can go there, for the so we just need to check for the king
-        return isKingThreatenThePlace ||  canColorMoveToPlaceWithoutMovingItsKing(place,color) ;
+        return isKingThreatenThePlace || canColorMoveToPlaceWithoutMovingItsKing(place, color);
     }
 
     /**
@@ -440,23 +449,6 @@ public class TwoPlayerChessBoard {
         return output;
     }
 
-    /**
-     * @param playerColor the player color you want the moving option of its king
-     * @return returns the places where the king can move
-     */
-    private Collection<? extends Place> getKingMovingOptions(Color playerColor) {
-        Set<Place> availablePlaces = new HashSet<>();
-        Place kingPlace = getKingPlace(playerColor);
-        for (Direction direction : fullRunnerValidMovementDirectionsMap.get(Queen.class))
-            try {
-                if (isLegalMove(kingPlace, kingPlace.move(direction), playerColor))
-                    availablePlaces.add(kingPlace.move(direction));
-            } catch (Exception ignored) {
-                // if there is no place on the board in the direction we can ignore (not to add it)
-            }
-        return availablePlaces;
-    }
-
 
     private Place getKingPlace(Color color) {
         return color.equals(Color.White) ? whiteKingPlace : blackKingPlace;
@@ -484,11 +476,6 @@ public class TwoPlayerChessBoard {
     }
 
 
-
-
-
-
-
     /**
      * @param color the player color we want to check in pat
      * @return true, if the {@param color} player in pat
@@ -506,13 +493,13 @@ public class TwoPlayerChessBoard {
 
                     // check if the pawn can move
                     int toAdd = color.equals(Color.White) ? -1 : 1; //up for white, down for black
-                    boolean canEatLeft=false,canEatRight=false,canMoveForeword=false;
-                    Place pawnPlace = Place.getPlace(i,j);
-                    if (j>0)
-                        canEatLeft = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j-1),color);
-                    if (j<7)
-                        canEatRight = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j+1),color);
-                    canMoveForeword = isLegalMove(pawnPlace,Place.getPlace(i+toAdd,j),color);
+                    boolean canEatLeft = false, canEatRight = false, canMoveForeword = false;
+                    Place pawnPlace = Place.getPlace(i, j);
+                    if (j > 0)
+                        canEatLeft = isLegalMove(pawnPlace, Place.getPlace(i + toAdd, j - 1), color);
+                    if (j < 7)
+                        canEatRight = isLegalMove(pawnPlace, Place.getPlace(i + toAdd, j + 1), color);
+                    canMoveForeword = isLegalMove(pawnPlace, Place.getPlace(i + toAdd, j), color);
 
                     if (canEatRight | canEatLeft | canMoveForeword)
                         return false;
@@ -521,48 +508,111 @@ public class TwoPlayerChessBoard {
         return getKingMovingOptions(color).isEmpty() && !isKingThreaten(color);
     }
 
-}
 
-
-/*private void placePieces() {
-        // pawns
-        for (int column = 0; column < 8; column++) {
-            pieces[1][column] = new Pawn(Color.Black);
-            pieces[6][column] = new Pawn(Color.White);
-        }
-
-        //rook
-        pieces[0][0] = new Rook(Color.Black);
-        pieces[0][7] = new Rook(Color.Black);
-        pieces[7][7] = new Rook(Color.White);
-        pieces[7][0] = new Rook(Color.White);
-
-        //Knight
-        pieces[0][1] = new Knight(Color.Black);
-        pieces[0][6] = new Knight(Color.Black);
-        pieces[7][1] = new Knight(Color.White);
-        pieces[7][6] = new Knight(Color.White);
-
-        //Bishop
-        pieces[0][2] = new Bishop(Color.Black);
-        pieces[0][5] = new Bishop(Color.Black);
-        pieces[7][2] = new Bishop(Color.White);
-        pieces[7][5] = new Bishop(Color.White);
-
-        // King
-        pieces[0][3] = new King(Color.Black);
-        pieces[7][3] = new King(Color.White);
-        blackKingPlace = Place.getPlace(0, 3);
-        whiteKingPlace = Place.getPlace(7, 3);
-
-        //Queen
-        pieces[0][4] = new Queen(Color.Black);
-        pieces[7][4] = new Queen(Color.White);
-
-        for (int row = 2; row < 6; row++) {
-            for (int column = 0; column < 8; column++) {
-                pieces[row][column] = null;
+    /**
+     * @param playerColor the player color you want the moving option of its king
+     * @return returns the places where the king can move
+     */
+    private Collection<Place> getKingMovingOptions(Color playerColor) {
+        Set<Place> canMoveTo = new HashSet<>();
+        Place kingPlace = getKingPlace(playerColor);
+        for (Direction direction : fullRunnerValidMovementDirectionsMap.get(Queen.class)) {
+            try {
+                if (isLegalMove(kingPlace, kingPlace.move(direction), playerColor))
+                    canMoveTo.add(kingPlace.move(direction));
+            } catch (Exception ignored) {
+                // if there is no place on the board in the direction we can ignore (not to add it)
             }
         }
-    }*/
+
+        // castling
+        try {
+
+            Place twoToTheLeft = kingPlace.moveLeft().moveLeft();
+            Place twoToTheRight = kingPlace.moveRight().moveRight();
+
+        if (isLegalMove(kingPlace, twoToTheLeft, playerColor))
+            canMoveTo.add(twoToTheLeft);
+
+        if (isLegalMove(kingPlace, twoToTheRight, playerColor))
+            canMoveTo.add(twoToTheRight);
+        }catch (Exception ignore){
+            // if i got here that's mean that the king is not in his initial place so there cannot be any castling
+        }
+
+
+
+        return canMoveTo;
+    }
+
+    /**
+     * This function use the visitor pattern
+     *
+     * @param src the piece Place which you want the moving option of
+     * @return a Collection of Places that the piece from {@param src} can move to
+     */
+    public Collection<Place> calculateMovingOptions(Place src) {
+        if (getPieceInPlace(src) == null)
+            return new HashSet<>();
+
+        return getPieceInPlace(src).getMovingOptions(src, this);
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, Pawn piece) {
+        // pawn cannot move as a queen, but all of his possible directions (both black and white) are contained
+        // inside the queen direction.
+        // so when "calculateFullRunnerMovingOptions" invoke on the pawn, he will check all directions
+        return calculateFullRunnerMovingOptions(src, fullRunnerValidMovementDirectionsMap.get(Queen.class));
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, Rook piece) {
+        return calculateFullRunnerMovingOptions(src, fullRunnerValidMovementDirectionsMap.get(Rook.class));
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, Knight piece) {
+        Set<Place> canMoveTo = new HashSet<>();
+        for (Place dest : src.calculateKnightJumpOptionFromSrc()) {// get all possible moving options
+            if (isLegalMove(src, dest, piece.getColor()))
+                canMoveTo.add(dest);
+        }
+        return canMoveTo;
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, Bishop piece) {
+        return calculateFullRunnerMovingOptions(src, fullRunnerValidMovementDirectionsMap.get(Bishop.class));
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, Queen piece) {
+        return calculateFullRunnerMovingOptions(src, fullRunnerValidMovementDirectionsMap.get(Queen.class));
+    }
+
+    public Collection<Place> calculateMovingOptions(Place src, King piece) {
+        return getKingMovingOptions(piece.getColor());
+    }
+
+    /**
+     * @param src                the source place of the "full runner"
+     * @param possibleDirections The directions the piece in {@param src} can move
+     * @return A set of Places the piece in {@param src} can move to
+     */
+    private Collection<Place> calculateFullRunnerMovingOptions(Place src, Set<Direction> possibleDirections) {
+        Color pieceColor = getPieceInPlace(src).getColor();
+        Set<Place> canMoveTo = new HashSet<>();
+
+        for (Direction direction : possibleDirections) {
+            try {
+                Place dest = src.move(direction);
+                while (true) { //we need to check all the options because in check case, we might be able to move the piece to the end of the direction, but not in the middle
+                    if (isLegalMove(src, dest, pieceColor))
+                        canMoveTo.add(dest);
+
+                    dest = dest.move(direction);
+                }
+            } catch (Exception unRelevant) {
+                // this indicates that you got to the end of the board
+            }
+        }
+        return canMoveTo;
+    }
+}
 

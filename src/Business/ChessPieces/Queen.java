@@ -4,13 +4,15 @@ import Business.Boards.TwoPlayerChessBoard;
 import Business.Color;
 import Business.Place;
 
+import java.util.Collection;
+
 public class Queen  extends ChessPiece{
     public Queen(Color color) {
         super(color);
     }
 
     @Override
-    public boolean isLegalMove(Place origin, Place to, TwoPlayerChessBoard board) {
+    public boolean isLegalPieceMove(Place origin, Place to, TwoPlayerChessBoard board) {
         return board.isLegalPieceMovement(origin,to,this);
 
     }
@@ -20,5 +22,9 @@ public class Queen  extends ChessPiece{
     }
     public ChessPiece clone() {
         return new Queen(getColor(),hasMoved());
+    }
+    @Override
+    public Collection<Place> getMovingOptions(Place src, TwoPlayerChessBoard board) {
+        return board.calculateMovingOptions(src,this);
     }
 }

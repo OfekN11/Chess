@@ -4,6 +4,8 @@ import Business.Boards.TwoPlayerChessBoard;
 import Business.Color;
 import Business.Place;
 
+import java.util.Collection;
+
 public abstract class ChessPiece {
     private boolean hasMoved;
     private Color color;
@@ -18,7 +20,7 @@ public abstract class ChessPiece {
         this.color = color;
     }
 
-    public abstract boolean isLegalMove(Place start, Place finish, TwoPlayerChessBoard board);
+    public abstract boolean isLegalPieceMove(Place start, Place finish, TwoPlayerChessBoard board);
 
     public void moved(){
         hasMoved = true;}
@@ -35,5 +37,7 @@ public abstract class ChessPiece {
 
     public abstract ChessPiece clone();
 
+
+    public abstract Collection<Place> getMovingOptions(Place src, TwoPlayerChessBoard board);
 
 }

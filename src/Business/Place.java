@@ -88,6 +88,21 @@ public class Place {
         }
     }
 
+    public Set<Place> calculateKnightJumpOptionFromSrc() {
+        int[] rowToAdd ={-2,-1,1,2,2,1,-1,-2};
+        int[] columnToAdd ={1,2,2,1,-1,-2,-2,-1};
+        Set<Place> output = new HashSet<>();
+        for (int i = 0; i < 8; i++) {
+            try{
+                output.add(getPlace(this.row +rowToAdd[i],this.column+columnToAdd[i]));
+            }
+            catch (Exception ignored){
+                // out of
+            }
+        }
+        return output;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Place other))
