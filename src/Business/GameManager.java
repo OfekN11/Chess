@@ -2,83 +2,84 @@ package Business;
 
 import Business.Boards.GameScore;
 import Business.Boards.TwoPlayerChessBoard;
+import Business.ChessPieces.ChessPiece;
 import Business.Interfaces.IOController;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * this class is responsible for the creation and the flow of the game
  */
 public class GameManager {
-    TwoPlayerChessBoard board;
-    private final Map<Color, IOController> colorIOControllerMap = new HashMap<>();
-    //private final FinishCallback finishCallBack;
+    private TwoPlayerChessBoard board;
+    private Place src;
+    private Color colorTurn;
+    private ChessPiece chosenPiece;
 
-    /**
-     * @param whiteIoController an Io interface to communicate with the white player
-     * @param blackIoController an Io interface to communicate with the black player
-     */
-    public GameManager(TwoPlayerChessBoard board, IOController whiteIoController, IOController blackIoController ) {
+
+    public GameManager(TwoPlayerChessBoard board) {
         this.board = board;
-        colorIOControllerMap.put(Color.White, whiteIoController);
-        colorIOControllerMap.put(Color.Black, blackIoController);
-        //this.finishCallBack = callBack;
-    }
-
-    public void startGame() {
-        GameScore gameScore = gameLoop();
-        finishGame(gameScore);
+        this.src = null;
+        this.colorTurn = Color.White;
     }
 
 
-
-    /**
-     * A While loop that controls the game flaw
-     * @return A game status instance which contains the winner and the reason of the winning
-     */
-    private GameScore gameLoop() {
-        Color colorTurn = Color.White;
-        while (true) {
-            try {
-                Place start = colorIOControllerMap.get(colorTurn).getPlace(MessagesLibrary.CHOOSE_A_PIECE);
-
-                if (start.equals(Place.GIVE_UP_PLACE)) {
-                    Color winner = Color.getOpponent(colorTurn,2).get(0);
-                    return new GameScore(winner, GameScore.ReasonOfFinish.GiveUp);
-                }
-
-                Place finish = colorIOControllerMap.get(colorTurn).getPlace(MessagesLibrary.CHOOSE_Destination);
-
-                // in case of regret (double tap on the same piece
-                if (start.equals(finish))
-                    continue;
-
-                makeAMove(colorTurn, start, finish);
-                colorIOControllerMap.get(colorTurn).presentMsg(MessagesLibrary.EMPTY_MESSAGE);
-
-
-                // if the "other player" is in checkmate or pat
-                if (board.isInCheckMate(Color.getOpponent(colorTurn,2).get(0))) {
-                    return new GameScore(colorTurn, GameScore.ReasonOfFinish.CheckMate);
-                }
-
-
-                if (board.isInPat(Color.getOpponent(colorTurn,2).get(0))) {
-                    return new GameScore(Color.getOpponent(colorTurn,2).get(0), GameScore.ReasonOfFinish.Pat);
-                }
-
-            } catch (RuntimeException e) {
-                colorIOControllerMap.get(colorTurn).presentMsg(e.getMessage());
-            }
+    public Collection<Place> enteredInput(Place chosenPlace) {
+        if (chosenPlace == src) { // double click to cancel
+            resetVariables();
+            return Collections.emptyList();
         }
+
+        try {
+            if (src == null) {
+                src = chosenPlace;
+                chosenPiece = board.getPieceInPlace(chosenPlace);
+                if (chosenPiece == null || chosenPiece.getColor() != colorTurn)
+                    resetVariables();
+                else
+                    return board.calculateMovingOptions(src);
+            } else {
+                //second click
+                if (board.isLegalMove(src, chosenPlace, colorTurn)) {
+                    board.moveAPiece(src, chosenPlace, () -> 'Q'); // that's a big bug, but I do not perfect with the Gui
+                    colorTurn = Color.getOpponent(colorTurn, 2).get(0);
+
+                    if (board.isInCheckMate(colorTurn)) {
+                        System.out.println(Color.getOpponent(colorTurn, 2).get(0) + " has won");
+                        System.exit(0);
+                    } else if (board.isInPat(colorTurn)) {
+                        System.out.println("its a tie!");
+                        System.exit(0);
+                    }
+                }
+                resetVariables();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Collections.emptyList();
     }
 
-    /**
-     * this method should be called when a game is done
-     */
-    private void finishGame(GameScore gameScore) {
-        Color opponent = Color.getOpponent(gameScore.winner,2).get(0);
+    private void resetVariables() {
+        this.src = null;
+        this.chosenPiece = null;
+    }
+
+
+    public String getStringRepresentationOfPieceInPlace(Place piecePlace) {
+        return board.getStringRepresentationOfPieceInPlace(piecePlace);
+    }
+
+
+
+        /**
+         * this method should be called when a game is done
+         */
+ /*   private void finishGame(GameScore gameScore) {
+        Color opponent = Color.getOpponent(gameScore.winner, 2).get(0);
         switch (gameScore.reason) {
             case GiveUp -> {
                 colorIOControllerMap.get(gameScore.winner).presentMsg(String.format(MessagesLibrary.WIN_MASSAGE, "Your opponent has" + MessagesLibrary.GAVE_UP_MASSAGE));
@@ -94,19 +95,19 @@ public class GameManager {
             }
         }
         //finishCallBack.call();
-    }
+    }*/
 
     /**
      * @param playerColor the player color who make the move
      * @param start       place of the piece you want to move
      * @param finish      where to move the piece
      */
-    public void makeAMove(Color playerColor, Place start, Place finish) throws RuntimeException {
+    /*public void makeAMove(Color playerColor, Place start, Place finish) throws RuntimeException {
 
 
         if (!board.isLegalMove(start, finish, playerColor))
             throw new RuntimeException(MessagesLibrary.INVALID_CHOICE);
 
-        board.moveAPiece(start, finish,()->'Q');
-    }
+        board.moveAPiece(start, finish, () -> 'Q');
+    }*/
 }

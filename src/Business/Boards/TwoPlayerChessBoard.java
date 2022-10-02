@@ -239,7 +239,9 @@ public class TwoPlayerChessBoard {
             Place startPlusOne = start.move(direction);
             return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start, finish, direction, true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor) && !isPlaceThreatenByAColor(start, opponentColor);
         }
-        return fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish, getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
+        boolean legalMove = fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish, getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
+        boolean kingIsInCheckInNewPlace = new TwoPlayerChessBoard(this,start,finish).isKingThreaten(king.getColor());
+        return  legalMove && !kingIsInCheckInNewPlace;
     }
 
     /**
@@ -380,7 +382,9 @@ public class TwoPlayerChessBoard {
      * @return true if a piece of {@param color} can move to {@param place}
      */
     private boolean canColorMoveToPlace(Place place, Color color) {
-        return getPieceInPlace(getKingPlace(color)).isLegalPieceMove(getKingPlace(color), place, this) || canColorMoveToPlaceWithoutMovingItsKing(place, color);
+        boolean canKingMoveToPlace = getPieceInPlace(getKingPlace(color)).isLegalPieceMove(getKingPlace(color), place, this);
+        boolean canColorMoveToPlaceWithoutMovingItsKing =canColorMoveToPlaceWithoutMovingItsKing(place, color);
+        return  canKingMoveToPlace|| canColorMoveToPlaceWithoutMovingItsKing;
     }
 
 
@@ -531,15 +535,14 @@ public class TwoPlayerChessBoard {
             Place twoToTheLeft = kingPlace.moveLeft().moveLeft();
             Place twoToTheRight = kingPlace.moveRight().moveRight();
 
-        if (isLegalMove(kingPlace, twoToTheLeft, playerColor))
-            canMoveTo.add(twoToTheLeft);
+            if (isLegalMove(kingPlace, twoToTheLeft, playerColor))
+                canMoveTo.add(twoToTheLeft);
 
-        if (isLegalMove(kingPlace, twoToTheRight, playerColor))
-            canMoveTo.add(twoToTheRight);
-        }catch (Exception ignore){
+            if (isLegalMove(kingPlace, twoToTheRight, playerColor))
+                canMoveTo.add(twoToTheRight);
+        } catch (Exception ignore) {
             // if i got here that's mean that the king is not in his initial place so there cannot be any castling
         }
-
 
 
         return canMoveTo;
@@ -613,6 +616,18 @@ public class TwoPlayerChessBoard {
             }
         }
         return canMoveTo;
+    }
+
+    public String getStringRepresentationOfPieceInPlace(Place piecePlace) {
+        StringBuilder output = new StringBuilder();
+        ChessPiece piece = getPieceInPlace(piecePlace);
+        if (piece == null)
+            return "";
+
+        String className = piece.getClass().toString().substring(piece.getClass().toString().lastIndexOf(".") + 1, piece.getClass().toString().lastIndexOf(".") + 3);
+        output.append(piece.getColor().toString().substring(0, 1) + className);
+
+        return output.toString();
     }
 }
 
