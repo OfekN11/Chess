@@ -137,9 +137,11 @@ public class TwoPlayerChessBoard {
         ChessPiece piece = getPieceInPlace(start);
 
         boolean legalMovement = piece.isLegalPieceMove(start, finish, this);
-        boolean notCauseASelfCheck = !new TwoPlayerChessBoard(this, start, finish).isKingThreaten(playerColor); // checking that the move is legal for the piece, and that the king is not threaten
-
-        return legalMovement && notCauseASelfCheck;
+        if(legalMovement) {
+            boolean notCauseASelfCheck = !new TwoPlayerChessBoard(this, start, finish).isKingThreaten(playerColor); // checking that the move is legal for the piece, and that the king is not threaten
+            return notCauseASelfCheck;
+        }
+        return false;
     }
 
 
@@ -347,7 +349,7 @@ public class TwoPlayerChessBoard {
 
     /**
      * this function should only be called from "moveAPiece", This function is continuation of special case of movingAPiece
-     * and should handle a king movment
+     * and should handle a king movement
      */
     private void moveAKing(Place start, Place finish, King king) {
         Direction direction = Place.calculateDirection(start, finish); // will throw exception if it is illegal move
