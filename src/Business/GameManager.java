@@ -1,11 +1,8 @@
 package Business;
 
-import Business.Boards.GameScore;
 import Business.Boards.TwoPlayerChessBoard;
 import Business.ChessPieces.ChessPiece;
-import Business.Interfaces.IOController;
 
-import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -25,41 +22,57 @@ public class GameManager {
         this.colorTurn = Color.White;
     }
 
-
-    public Collection<Place> enteredInput(Place chosenPlace) {
+    /**
+     *
+     * @param chosenPlace the place that had been clicked
+     * @return a collection of places to show the user where the piece he chose in the first click can move
+     */
+    public Collection<Place> clickListener(Place chosenPlace) {
         if (chosenPlace == src) { // double click to cancel
-            resetVariables();
+                resetVariables();
             return Collections.emptyList();
         }
 
         try {
-            if (src == null) {
-                src = chosenPlace;
-                chosenPiece = board.getPieceInPlace(chosenPlace);
-                if (chosenPiece == null || chosenPiece.getColor() != colorTurn)
-                    resetVariables();
-                else
-                    return board.calculateMovingOptions(src);
-            } else {
-                //second click
-                if (board.isLegalMove(src, chosenPlace, colorTurn)) {
-                    board.moveAPiece(src, chosenPlace, () -> 'Q'); // that's a big bug, but I do not perfect with the Gui
-                    colorTurn = Color.getOpponent(colorTurn, 2).get(0);
+            if (src == null)
+                return handleFirstClick(chosenPlace);
 
-                    if (board.isInCheckMate(colorTurn)) {
-                        System.out.println(Color.getOpponent(colorTurn, 2).get(0) + " has won");
-                        System.exit(0);
-                    } else if (board.isInPat(colorTurn)) {
-                        System.out.println("its a tie!");
-                        System.exit(0);
-                    }
-                }
-                resetVariables();
-            }
+            else
+                return handleSecondClick(chosenPlace);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return Collections.emptyList();
+    }
+
+
+
+    private Collection<Place> handleFirstClick(Place chosenPlace) {
+        src = chosenPlace;
+        chosenPiece = board.getPieceInPlace(chosenPlace);
+        if (chosenPiece == null || chosenPiece.getColor() != colorTurn) {
+            resetVariables();
+            return Collections.emptyList();
+        }
+        else
+            return board.calculateMovingOptions(src);
+    }
+
+    private Collection<Place> handleSecondClick(Place chosenPlace) {
+        if (board.isLegalMove(src, chosenPlace, colorTurn)) {
+            board.moveAPiece(src, chosenPlace, () -> 'Q'); // that's a big bug, but I do not perfect with the Gui and I do not want to invest a lot of time on it.
+            colorTurn = Color.getOpponent(colorTurn, 2).get(0);
+
+            if (board.isInCheckMate(colorTurn)) {
+                System.out.println(Color.getOpponent(colorTurn, 2).get(0) + " has won");
+                System.exit(0);
+            } else if (board.isInPat(colorTurn)) {
+                System.out.println("its a tie!");
+                System.exit(0);
+            }
+        }
+        resetVariables();
         return Collections.emptyList();
     }
 

@@ -1,8 +1,6 @@
 package Presentation;
 
-import Business.Boards.BoardController;
-import Business.Boards.TwoPlayerChessBoard;
-import Business.ChessPieces.ChessPiece;
+import Business.Controllers.BoardController;
 import Business.GameManager;
 import Business.Place;
 
@@ -22,6 +20,10 @@ import java.util.List;
 import static javax.swing.SwingUtilities.isLeftMouseButton;
 import static javax.swing.SwingUtilities.isRightMouseButton;
 
+
+/**
+ * All This class has been written by the help of Amir650 so please check it out at- https://www.youtube.com/c/amir650.
+ */
 public class tableGui {
     private final JFrame gameFrame;
     private final BoardPanel boardPanel;
@@ -157,7 +159,7 @@ public class tableGui {
                 public void mousePressed(MouseEvent e) {
                     if (isLeftMouseButton(e)) {
                         Place thisTile = getPlaceFromId();
-                        possibleDestinationsForChosenPiece = gameManager.enteredInput(thisTile);
+                        possibleDestinationsForChosenPiece = gameManager.clickListener(thisTile);
                         boardPanel.drawBoard();
 
 
