@@ -1,7 +1,5 @@
 package Presentation;
 
-import Business.Controllers.BoardController;
-import Business.GameManager;
 import Business.Place;
 
 import javax.imageio.ImageIO;
@@ -16,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static javax.swing.SwingUtilities.isLeftMouseButton;
 import static javax.swing.SwingUtilities.isRightMouseButton;
@@ -24,10 +23,10 @@ import static javax.swing.SwingUtilities.isRightMouseButton;
 /**
  * All This class has been written by the help of Amir650 so please check it out at- https://www.youtube.com/c/amir650.
  */
-public class tableGui {
+public class TableGui {
     private final JFrame gameFrame;
+    private final Object lock;
     private final BoardPanel boardPanel;
-    private final GameManager gameManager;
     private BoardDirection boardDirection;
     private boolean highlightLegalMove;
     private Collection<Place> possibleDestinationsForChosenPiece;
@@ -37,19 +36,23 @@ public class tableGui {
     private final Color lightTileColor = Color.decode("#FFFACD");
     private final Color darkTileColor = Color.decode("#593E1A");
 
-    public tableGui() {
+    private final ClickListener clickListener;
+    private final Supplier<String> boardStringSupplier;
+
+    public TableGui(ClickListener listener, Supplier<String> boardStringSupplier) {
+        this.clickListener = listener;
+        this.boardStringSupplier = boardStringSupplier;
         this.gameFrame = new JFrame("Two Player Chess");
         this.gameFrame.setLayout(new BorderLayout());
         JMenuBar tableMenuBar = createTableMenuBar();
         this.gameFrame.setJMenuBar(tableMenuBar);
         this.gameFrame.setSize(FRAME_DIMENSION);
-        this.gameManager= new BoardController().startGame();
         this.boardPanel = new BoardPanel();
         this.boardDirection = BoardDirection.NORMAL;
-        this.highlightLegalMove =true;
-
+        this.highlightLegalMove = true;
         this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
         this.gameFrame.setVisible(true);
+        lock = new byte[1];
     }
 
     private JMenuBar createTableMenuBar() {
@@ -82,10 +85,10 @@ public class tableGui {
         return fileMenu;
     }
 
-    private JMenu createPreferencesMenu(){
+    private JMenu createPreferencesMenu() {
         final JMenu preferencesMenu = new JMenu("Preferences");
-        final  JMenuItem flipBoardMenuItem = new JMenuItem("Flip Board");
-        final  JCheckBoxMenuItem legalMoveHighlighterCheckBox = new JCheckBoxMenuItem("Highlight Legal Moves",true);
+        final JMenuItem flipBoardMenuItem = new JMenuItem("Flip Board");
+        final JCheckBoxMenuItem legalMoveHighlighterCheckBox = new JCheckBoxMenuItem("Highlight Legal Moves", true);
         flipBoardMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -107,6 +110,13 @@ public class tableGui {
         return preferencesMenu;
     }
 
+    public void setPossibleDestinationsForChosenPiece(Collection<Place> possibleDestinationsForChosenPiece){
+        synchronized (lock){
+            this.possibleDestinationsForChosenPiece = possibleDestinationsForChosenPiece;
+            boardPanel.drawBoard();
+        }
+    }
+
     private class BoardPanel extends JPanel {
         final List<TilePanel> boardTiles;
 
@@ -120,18 +130,27 @@ public class tableGui {
             }
 
             setPreferredSize(BOARD_PANEL_DIMENSION);
+            drawBoard();
             validate();
         }
 
         public void drawBoard() {
-            removeAll();
-            for (TilePanel tile :
+            synchronized (lock){
+                removeAll();
+                String boardAsString = boardStringSupplier.get();
+                List<TilePanel> tilePanels = boardDirection.traverse(boardTiles);
+                for (int i = 0; i < boardAsString.length(); i++) {
+                    tilePanels.get(i).drawTile(boardAsString.charAt(i));
+                    add(tilePanels.get(i));
+                }
+            }
+           /* for (TilePanel tile :
                     boardDirection.traverse(boardTiles)) {
                 tile.drawTile();
                 add(tile);
             }
             validate();
-            repaint();
+            repaint();*/
         }
     }
 
@@ -146,8 +165,6 @@ public class tableGui {
             this.tileId = tileId;
             this.tilePlace = getPlaceFromId();
             setPreferredSize(TILE_PANEL_DIMENSION);
-            assignTileColor();
-            assignTilePieceIcon();
 
             addMouseListener(new MouseListener() {
                 @Override
@@ -158,11 +175,8 @@ public class tableGui {
                 @Override
                 public void mousePressed(MouseEvent e) {
                     if (isLeftMouseButton(e)) {
-                        Place thisTile = getPlaceFromId();
-                        possibleDestinationsForChosenPiece = gameManager.clickListener(thisTile);
-                        boardPanel.drawBoard();
-
-
+                        Place thisTilePlace = getPlaceFromId();
+                        clickListener.listen(thisTilePlace);
                     } else if (isRightMouseButton(e)) {
                         resetVariables();
                     }
@@ -185,7 +199,7 @@ public class tableGui {
                 }
             });
             validate();
-            }
+        }
 
 
         private Place getPlaceFromId() {
@@ -194,10 +208,10 @@ public class tableGui {
             return Place.getPlace(row, column);
         }
 
-        private void assignTilePieceIcon() {
+        private void assignTilePieceIcon(char c) {
             this.removeAll();
-            String pieceRepresentationString = gameManager.getStringRepresentationOfPieceInPlace(getPlaceFromId());
-            if (!Objects.equals(pieceRepresentationString, "")) {
+            String pieceRepresentationString = getStringRepresentationOfPieceInPlace(c);
+            if (pieceRepresentationString != null) {
                 try {
                     final BufferedImage image = ImageIO.read(new File(PHOTOS_DIRECTORY_PATH + pieceRepresentationString + ".gif"));
                     add(new JLabel(new ImageIcon(image)));
@@ -205,6 +219,24 @@ public class tableGui {
                     throw new RuntimeException(e);
                 }
             }
+        }
+
+        public String getStringRepresentationOfPieceInPlace(char c) {
+            return switch (c) {
+                case 'P' ->  "W" + "Pa" + ".gif";
+                case 'p' ->  "B" + "Pa" + ".gif";
+                case 'R' -> "W" + "Ro" + ".gif";
+                case 'r' -> "B" + "Ro" + ".gif";
+                case 'B' -> "W" + "Bi" + ".gif";
+                case 'b' -> "B" + "Bi" + ".gif";
+                case 'H' -> "W" + "Kn" + ".gif";
+                case 'h' -> "B" + "Kn" + ".gif";
+                case 'K' -> "W" + "Ki" + ".gif";
+                case 'k' -> "B" + "Ki" + ".gif";
+                case 'Q' -> "W" + "Qu" + ".gif";
+                case 'q' -> "B" + "Qu" + ".gif";
+                default -> null;
+            };
         }
 
         private void assignTileColor() {
@@ -215,9 +247,9 @@ public class tableGui {
 
         }
 
-        public void drawTile() {
+        public void drawTile(char c) {
             assignTileColor();
-            assignTilePieceIcon();
+            assignTilePieceIcon(c);
             highlightLegalMoves();
             validate();
             repaint();
@@ -242,10 +274,10 @@ public class tableGui {
     }
 
 
-    public enum BoardDirection{
-        NORMAL{
+    public enum BoardDirection {
+        NORMAL {
             @Override
-            List<TilePanel> traverse(List<TilePanel> boardTiles){
+            List<TilePanel> traverse(List<TilePanel> boardTiles) {
                 return boardTiles;
             }
 
@@ -255,12 +287,12 @@ public class tableGui {
             }
         },
 
-        FLIPPED{
+        FLIPPED {
             @Override
             List<TilePanel> traverse(List<TilePanel> boardTiles) {
                 TilePanel[] output = new TilePanel[64];
                 for (int i = 0; i < boardTiles.size(); i++) {
-                    output[boardTiles.size()-1-i] = boardTiles.get(i);
+                    output[boardTiles.size() - 1 - i] = boardTiles.get(i);
                 }
                 return Arrays.stream(output).toList();
             }
@@ -270,7 +302,9 @@ public class tableGui {
                 return NORMAL;
             }
         };
+
         abstract List<TilePanel> traverse(final java.util.List<TilePanel> boardTiles);
+
         abstract BoardDirection opposite();
     }
 

@@ -620,16 +620,6 @@ public class TwoPlayerChessBoard {
         return canMoveTo;
     }
 
-    public String getStringRepresentationOfPieceInPlace(Place piecePlace) {
-        StringBuilder output = new StringBuilder();
-        ChessPiece piece = getPieceInPlace(piecePlace);
-        if (piece == null)
-            return "";
 
-        String className = piece.getClass().toString().substring(piece.getClass().toString().lastIndexOf(".") + 1, piece.getClass().toString().lastIndexOf(".") + 3);
-        output.append(piece.getColor().toString().substring(0, 1) + className);
-
-        return output.toString();
-    }
 }
 

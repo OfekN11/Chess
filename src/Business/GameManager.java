@@ -2,9 +2,10 @@ package Business;
 
 import Business.Boards.TwoPlayerChessBoard;
 import Business.ChessPieces.ChessPiece;
+import srv.api.UserMessageReceiver;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * this class is responsible for the creation and the flow of the game
@@ -14,12 +15,16 @@ public class GameManager {
     private Place src;
     private Color colorTurn;
     private ChessPiece chosenPiece;
+    private final Map<UserMessageReceiver,Color> userColorMap;
 
 
-    public GameManager(TwoPlayerChessBoard board) {
+    public GameManager(TwoPlayerChessBoard board,UserMessageReceiver whiteMassageReceiver, UserMessageReceiver blackMassageReceiver) {
         this.board = board;
         this.src = null;
         this.colorTurn = Color.White;
+        userColorMap = new HashMap<UserMessageReceiver,Color>();
+        userColorMap.put(whiteMassageReceiver,Color.White);
+        userColorMap.put(blackMassageReceiver,Color.Black);
     }
 
     /**
@@ -27,53 +32,69 @@ public class GameManager {
      * @param chosenPlace the place that had been clicked
      * @return a collection of places to show the user where the piece he chose in the first click can move
      */
-    public Collection<Place> clickListener(Place chosenPlace) {
+    public void userClick(Place chosenPlace, UserMessageReceiver userMessageReceiver) {
+
+        synchronized (this) {
+            if (userColorMap.get(userMessageReceiver) != colorTurn)
+                return;
+        }
+
+
         if (chosenPlace == src) { // double click to cancel
                 resetVariables();
-            return Collections.emptyList();
+            return;
         }
 
         try {
             if (src == null)
-                return handleFirstClick(chosenPlace);
+                 handleFirstClick(chosenPlace,userMessageReceiver);
 
             else
-                return handleSecondClick(chosenPlace);
+                 handleSecondClick(chosenPlace,userMessageReceiver);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return Collections.emptyList();
     }
 
 
 
-    private Collection<Place> handleFirstClick(Place chosenPlace) {
+    private void handleFirstClick(Place chosenPlace,UserMessageReceiver userMessageReceiver) {
         src = chosenPlace;
         chosenPiece = board.getPieceInPlace(chosenPlace);
         if (chosenPiece == null || chosenPiece.getColor() != colorTurn) {
             resetVariables();
-            return Collections.emptyList();
         }
-        else
-            return board.calculateMovingOptions(src);
+        else{
+            short sh = 3;
+            userMessageReceiver.receiveCollection(board.calculateMovingOptions(src),sh);
+        }
     }
 
-    private Collection<Place> handleSecondClick(Place chosenPlace) {
+    private void handleSecondClick(Place chosenPlace,UserMessageReceiver userMessageReceiver) {
         if (board.isLegalMove(src, chosenPlace, colorTurn)) {
             board.moveAPiece(src, chosenPlace, () -> 'Q'); // that's a big bug, but I do not perfect with the Gui and I do not want to invest a lot of time on it.
-            colorTurn = Color.getOpponent(colorTurn, 2).get(0);
 
-            if (board.isInCheckMate(colorTurn)) {
-                System.out.println(Color.getOpponent(colorTurn, 2).get(0) + " has won");
-                System.exit(0);
-            } else if (board.isInPat(colorTurn)) {
-                System.out.println("its a tie!");
-                System.exit(0);
+            synchronized (this){
+                colorTurn = Color.getOpponent(colorTurn, 2).get(0);
+
+                if (board.isInCheckMate(colorTurn)) {
+                    for (UserMessageReceiver receiver :
+                            userColorMap.keySet()) {
+                        receiver.receiveMsg(Color.getOpponent(colorTurn, 2).get(0) + " has won");
+                    }
+                    System.exit(0);
+
+                } else if (board.isInPat(colorTurn)) {
+                    for (UserMessageReceiver receiver :
+                            userColorMap.keySet()) {
+                        receiver.receiveMsg("its a tie!");
+                    }
+                    System.exit(0);
+                }
             }
+            resetVariables();
         }
-        resetVariables();
-        return Collections.emptyList();
     }
 
     private void resetVariables() {
@@ -82,9 +103,6 @@ public class GameManager {
     }
 
 
-    public String getStringRepresentationOfPieceInPlace(Place piecePlace) {
-        return board.getStringRepresentationOfPieceInPlace(piecePlace);
-    }
 
 
 
