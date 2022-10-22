@@ -15,6 +15,10 @@ public class PlaceMessage extends Message{
         place =Place.getPlace(row-'0',column-'0');
     }
 
+    public PlaceMessage(Place place){
+        super(OPCODE);
+        this.place = place;
+    }
     public Place getPlace() {
         return place;
     }

@@ -3,10 +3,7 @@ package srv.api;
 import Business.Controllers.BoardController;
 import Business.GameManager;
 import Business.Place;
-import srv.api.Messages.Message;
-import srv.api.Messages.PlaceMessage;
-import srv.api.Messages.PlacesMessage;
-import srv.api.Messages.StringMessage;
+import srv.api.Messages.*;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -63,5 +60,10 @@ public class ServerProtocol implements Protocol<Message>, UserMessageReceiver {
     @Override
     public void receiveMsg(String msg) {
         connections.send(handlerConnectionId, new StringMessage(msg));
+    }
+
+    @Override
+    public void receiveBoardAsString(String boardString) {
+        connections.send(handlerConnectionId, new BoardContentMessage(boardString));
     }
 }

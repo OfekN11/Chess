@@ -25,6 +25,15 @@ public class GameManager {
         userColorMap = new HashMap<UserMessageReceiver,Color>();
         userColorMap.put(whiteMassageReceiver,Color.White);
         userColorMap.put(blackMassageReceiver,Color.Black);
+        System.out.println("i got here");
+        sendTheBoardToThePlayers();
+    }
+
+    private void sendTheBoardToThePlayers() {
+        for (UserMessageReceiver user :
+                userColorMap.keySet()) {
+            user.receiveBoardAsString(board.toString());
+        }
     }
 
     /**
@@ -74,7 +83,7 @@ public class GameManager {
     private void handleSecondClick(Place chosenPlace,UserMessageReceiver userMessageReceiver) {
         if (board.isLegalMove(src, chosenPlace, colorTurn)) {
             board.moveAPiece(src, chosenPlace, () -> 'Q'); // that's a big bug, but I do not perfect with the Gui and I do not want to invest a lot of time on it.
-
+            sendTheBoardToThePlayers();
             synchronized (this){
                 colorTurn = Color.getOpponent(colorTurn, 2).get(0);
 
@@ -93,6 +102,7 @@ public class GameManager {
                     System.exit(0);
                 }
             }
+
             resetVariables();
         }
     }
@@ -101,6 +111,7 @@ public class GameManager {
         this.src = null;
         this.chosenPiece = null;
     }
+
 
 
 

@@ -40,4 +40,11 @@ public abstract class ChessPiece {
 
     public abstract Collection<Place> getMovingOptions(Place src, TwoPlayerChessBoard board);
 
+    public String toString(){
+        String className = this.getClass().getSimpleName();
+        if (className.equals("Knight")){
+            return getColor() == Color.White ? "H" : "h";
+        }
+        return getColor() == Color.White ? className.substring(0,1) : className.substring(0,1).toLowerCase();
+    }
 }

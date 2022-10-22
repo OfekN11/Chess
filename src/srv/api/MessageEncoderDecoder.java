@@ -1,10 +1,7 @@
 package srv.api;
 
 import Business.Place;
-import srv.api.Messages.Message;
-import srv.api.Messages.PlaceMessage;
-import srv.api.Messages.PlacesMessage;
-import srv.api.Messages.StringMessage;
+import srv.api.Messages.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +26,8 @@ public class MessageEncoderDecoder implements MessageEncoderDecoderInterface<Mes
                     return new StringMessage(tmp);
                 case 3:
                     return new PlacesMessage(tmp);
+                case 4:
+                    return new BoardContentMessage(tmp);
             }
         } else {
             if (lenOpcode < 2) {
@@ -73,6 +72,11 @@ public class MessageEncoderDecoder implements MessageEncoderDecoderInterface<Mes
                 String output = builder.toString();
                 output = output.substring(0,output.length()-1);
                 content = output.getBytes();
+                break;
+
+            case 4: // BoardMessage
+                BoardContentMessage boardMessage = (BoardContentMessage) message;
+                content = boardMessage.getBoardContent().getBytes();
                 break;
             default:
                 content = new byte[0];

@@ -2,50 +2,52 @@ package srv.Client;
 
 import Business.Controllers.BoardController;
 import Business.GameManager;
+import Presentation.ClickListener;
 import Presentation.TableGui;
 import srv.api.Connections;
-import srv.api.Messages.Message;
+import srv.api.Messages.*;
 import srv.api.Protocol;
 
 import java.util.function.Supplier;
 
 public class ClientProtocol implements Protocol<Message> {
     private boolean shouldTerminate;
-    private Connections<Message> connections;
-    private int handlerConnectionId;
-    private Supplier<GameManager> gameManagerSupplier;
-    private GameManager gameManager;
-    private BoardController boardController;
-
     private TableGui tableGui;
 
-    public ClientProtocol(Supplier<String> boardStringSupplier){
-
-    }
     @Override
     public void start(int connectionId, Connections<Message> connections) {
-        tableGui = new TableGui();
-        this.connections = connections;
-        handlerConnectionId = connectionId;
+        ClickListener sendPlace = (place) -> connections.send(connectionId,new PlaceMessage(place));
+        tableGui = new TableGui(sendPlace);
         shouldTerminate = false;
-        this.boardController = new BoardController();
-        this.gameManagerSupplier = ()-> {
-            try {
-                return boardController.startGame(this);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        };
-        gameManager = gameManagerSupplier.get();
     }
 
     @Override
     public void process(Message message) {
+        short op = message.getOpcode();
+        switch (op) {
 
+            //2) String message
+            case 2:
+                StringMessage msg = (StringMessage) message;
+                System.out.println(msg);
+                shouldTerminate =true;
+                break;
+
+                //3) PlacesMessage
+            case 3:
+                PlacesMessage placesMessage = (PlacesMessage) message;
+                tableGui.setPossibleDestinationsForChosenPiece(placesMessage.getCollection());
+                break;
+
+                // Board change look message
+            case 4:
+                BoardContentMessage boardContentMessage = (BoardContentMessage) message;
+                tableGui.setBoardAsString(boardContentMessage.getBoardContent());
+        }
     }
 
     @Override
     public boolean shouldTerminate() {
-        return false;
+        return shouldTerminate;
     }
 }

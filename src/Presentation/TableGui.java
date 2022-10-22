@@ -35,13 +35,13 @@ public class TableGui {
     private final static Dimension TILE_PANEL_DIMENSION = new Dimension(10, 10);
     private final Color lightTileColor = Color.decode("#FFFACD");
     private final Color darkTileColor = Color.decode("#593E1A");
-
+    private String boardAsString;
     private final ClickListener clickListener;
-    private final Supplier<String> boardStringSupplier;
 
-    public TableGui(ClickListener listener, Supplier<String> boardStringSupplier) {
+
+    public TableGui(ClickListener listener) {
+        lock = new byte[1];
         this.clickListener = listener;
-        this.boardStringSupplier = boardStringSupplier;
         this.gameFrame = new JFrame("Two Player Chess");
         this.gameFrame.setLayout(new BorderLayout());
         JMenuBar tableMenuBar = createTableMenuBar();
@@ -52,7 +52,6 @@ public class TableGui {
         this.highlightLegalMove = true;
         this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
         this.gameFrame.setVisible(true);
-        lock = new byte[1];
     }
 
     private JMenuBar createTableMenuBar() {
@@ -117,6 +116,15 @@ public class TableGui {
         }
     }
 
+    public void reprint(){
+        boardPanel.drawBoard();
+    }
+
+    public void setBoardAsString(String board){
+        this.boardAsString = board;
+        reprint();
+    }
+
     private class BoardPanel extends JPanel {
         final List<TilePanel> boardTiles;
 
@@ -130,14 +138,12 @@ public class TableGui {
             }
 
             setPreferredSize(BOARD_PANEL_DIMENSION);
-            drawBoard();
             validate();
         }
 
         public void drawBoard() {
             synchronized (lock){
                 removeAll();
-                String boardAsString = boardStringSupplier.get();
                 List<TilePanel> tilePanels = boardDirection.traverse(boardTiles);
                 for (int i = 0; i < boardAsString.length(); i++) {
                     tilePanels.get(i).drawTile(boardAsString.charAt(i));

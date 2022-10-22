@@ -137,7 +137,7 @@ public class TwoPlayerChessBoard {
         ChessPiece piece = getPieceInPlace(start);
 
         boolean legalMovement = piece.isLegalPieceMove(start, finish, this);
-        if(legalMovement) {
+        if (legalMovement) {
             boolean notCauseASelfCheck = !new TwoPlayerChessBoard(this, start, finish).isKingThreaten(playerColor); // checking that the move is legal for the piece, and that the king is not threaten
             return notCauseASelfCheck;
         }
@@ -242,8 +242,8 @@ public class TwoPlayerChessBoard {
             return rook instanceof Rook && !rook.hasMoved() && !isThereAPieceBetween(start, finish, direction, true) && !isPlaceThreatenByAColor(startPlusOne, opponentColor) && !isPlaceThreatenByAColor(finish, opponentColor) && !isPlaceThreatenByAColor(start, opponentColor);
         }
         boolean legalMove = fullRunnerIsLegalPieceMovement(start, finish, fullRunnerValidMovementDirectionsMap.get(Queen.class)) && !isPlaceThreatenByAColor(finish, getOpponentColor(king.getColor())); // we use the queen class because king and queen can move the same direction, and we checked that the king don't move 2 steps
-        boolean kingIsInCheckInNewPlace = new TwoPlayerChessBoard(this,start,finish).isKingThreaten(king.getColor());
-        return  legalMove && !kingIsInCheckInNewPlace;
+        boolean kingIsInCheckInNewPlace = new TwoPlayerChessBoard(this, start, finish).isKingThreaten(king.getColor());
+        return legalMove && !kingIsInCheckInNewPlace;
     }
 
     /**
@@ -385,8 +385,8 @@ public class TwoPlayerChessBoard {
      */
     private boolean canColorMoveToPlace(Place place, Color color) {
         boolean canKingMoveToPlace = getPieceInPlace(getKingPlace(color)).isLegalPieceMove(getKingPlace(color), place, this);
-        boolean canColorMoveToPlaceWithoutMovingItsKing =canColorMoveToPlaceWithoutMovingItsKing(place, color);
-        return  canKingMoveToPlace|| canColorMoveToPlaceWithoutMovingItsKing;
+        boolean canColorMoveToPlaceWithoutMovingItsKing = canColorMoveToPlaceWithoutMovingItsKing(place, color);
+        return canKingMoveToPlace || canColorMoveToPlaceWithoutMovingItsKing;
     }
 
 
@@ -620,6 +620,16 @@ public class TwoPlayerChessBoard {
         return canMoveTo;
     }
 
-
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        for (ChessPiece[] row :
+                pieces) {
+            for (ChessPiece piece :
+                    row) {
+                output.append(piece.toString());
+            }
+        }
+        return output.toString();
+    }
 }
 
