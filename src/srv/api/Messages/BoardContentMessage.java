@@ -9,8 +9,8 @@ public class BoardContentMessage extends Message{
     public BoardContentMessage(List<Byte> bytes){
         super(OPCODE);
         StringBuilder tmp = new StringBuilder();
-        for (int i=1;i<bytes.size();i++) {
-            char c = (char) bytes.get(i).shortValue();
+        for (Byte aByte : bytes) {
+            char c = (char) aByte.shortValue();
             tmp.append(c);
         }
         boardContent = tmp.toString();

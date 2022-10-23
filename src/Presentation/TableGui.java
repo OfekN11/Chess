@@ -37,6 +37,7 @@ public class TableGui {
     private final Color darkTileColor = Color.decode("#593E1A");
     private String boardAsString;
     private final ClickListener clickListener;
+    private boolean isVisible;
 
 
     public TableGui(ClickListener listener) {
@@ -51,7 +52,10 @@ public class TableGui {
         this.boardDirection = BoardDirection.NORMAL;
         this.highlightLegalMove = true;
         this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
-        this.gameFrame.setVisible(true);
+        possibleDestinationsForChosenPiece = Collections.emptyList();
+        this.isVisible = false;
+        this.boardAsString = "";
+        System.out.println("finish tableGui constructor");
     }
 
     private JMenuBar createTableMenuBar() {
@@ -117,11 +121,15 @@ public class TableGui {
     }
 
     public void reprint(){
+        System.out.println("start tableGui reprinting");
         boardPanel.drawBoard();
+        System.out.println("finish tableGui reprinting");
     }
 
     public void setBoardAsString(String board){
         this.boardAsString = board;
+        if (!isVisible)
+            gameFrame.setVisible(true);
         reprint();
     }
 
@@ -229,18 +237,18 @@ public class TableGui {
 
         public String getStringRepresentationOfPieceInPlace(char c) {
             return switch (c) {
-                case 'P' ->  "W" + "Pa" + ".gif";
-                case 'p' ->  "B" + "Pa" + ".gif";
-                case 'R' -> "W" + "Ro" + ".gif";
-                case 'r' -> "B" + "Ro" + ".gif";
-                case 'B' -> "W" + "Bi" + ".gif";
-                case 'b' -> "B" + "Bi" + ".gif";
-                case 'H' -> "W" + "Kn" + ".gif";
-                case 'h' -> "B" + "Kn" + ".gif";
-                case 'K' -> "W" + "Ki" + ".gif";
-                case 'k' -> "B" + "Ki" + ".gif";
-                case 'Q' -> "W" + "Qu" + ".gif";
-                case 'q' -> "B" + "Qu" + ".gif";
+                case 'P' ->  "W" + "Pa";
+                case 'p' ->  "B" + "Pa";
+                case 'R' -> "W" + "Ro";
+                case 'r' -> "B" + "Ro";
+                case 'B' -> "W" + "Bi";
+                case 'b' -> "B" + "Bi";
+                case 'H' -> "W" + "Kn";
+                case 'h' -> "B" + "Kn";
+                case 'K' -> "W" + "Ki";
+                case 'k' -> "B" + "Ki";
+                case 'Q' -> "W" + "Qu";
+                case 'q' -> "B" + "Qu";
                 default -> null;
             };
         }

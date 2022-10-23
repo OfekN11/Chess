@@ -13,18 +13,10 @@ public class ClientMain {
     public static void main(String[] args) {
         String host ="localhost";
         int port = 7777;
-        int id;
-        synchronized (lock){
-            id = ClientMain.id++;
-        }
         try (SocketChannel channel = SocketChannel.open(new InetSocketAddress(host,port))){
-            ClientConnectionHandler<Message> clientConnectionHandler = new ClientConnectionHandler<Message>(new MessageEncoderDecoder(),new ClientProtocol(),channel,id,new ConnectionsImp<Message>());
-            Thread thread1= new Thread(clientConnectionHandler::continueRead);
-            Thread thread2 = new Thread(clientConnectionHandler::continueWrite);
-            thread1.start();
-            thread2.start();
-            thread1.join();
-            thread2.join();
+            ClientConnectionHandler<Message> clientConnectionHandler = new ClientConnectionHandler<Message>(new MessageEncoderDecoder(),new ClientProtocol(),channel,generateRandom(),new ConnectionsImp<Message>());
+            clientConnectionHandler.start();
+
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -34,7 +26,7 @@ public class ClientMain {
     }
 
     public static int generateRandom(){
-        int min =0, max = 1000000;
+        int min =100, max = 1000000;
         return (int)Math.floor(Math.random()*(max-min+1)+min);
     }
 }

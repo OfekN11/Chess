@@ -29,18 +29,30 @@ public class ServerProtocol implements Protocol<Message>, UserMessageReceiver {
                 throw new RuntimeException(e);
             }
         };
-        gameManager = gameManagerSupplier.get();
     }
 
     @Override
     public void process(Message message) {
+        System.out.println("server protocol process got a message");
         short op = message.getOpcode();
+        System.out.println("message opcode is " + op);
         switch (op) {
 
             //1) PlaceMsg
             case (1):
                 PlaceMessage msg = (PlaceMessage) message;
-                gameManager.userClick(msg.getPlace(),this);
+                if (gameManager != null)
+                    gameManager.userClick(msg.getPlace(),this);
+                break;
+
+                //string message
+            case 2:
+                StringMessage message1 = (StringMessage) message;
+                System.out.println("server protocol process find stringMessage with the message :" + message1.getMsg());
+                if (message1.getMsg().equals("Start")) {
+                    System.out.println("got to serverProtocol, start message");
+                    gameManager = gameManagerSupplier.get();
+                }
                 break;
         }
     }

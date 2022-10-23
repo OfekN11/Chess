@@ -1,6 +1,7 @@
 package srv.Client;
 
 import srv.ConnectionHandler;
+import srv.api.Messages.StringMessage;
 import srv.api.Protocol;
 import srv.api.ConnectionsImp;
 import srv.api.MessageEncoderDecoderInterface;
@@ -26,8 +27,9 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
             Protocol<T> protocol,
             SocketChannel chan,
             int connectionId,
-            ConnectionsImp<T> connections) {
+            ConnectionsImp<T> connections) throws IOException {
         this.chan = chan;
+        chan.configureBlocking(true);
         this.encdec = reader;
         this.protocol = protocol;
         protocol.start(connectionId, connections);
@@ -43,6 +45,8 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
                 success = chan.read(buf) != -1;
             } catch (IOException ex) {
                 ex.printStackTrace();
+                close();
+                break;
             }
 
             if (success) {
@@ -81,9 +85,9 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
     }
 
     public void continueWrite() {
-        while (true) {
             if (!writeQueue.isEmpty()) {
                 try {
+                    System.out.println("client connection handler continue write has a massage");
                     ByteBuffer top = writeQueue.peek();
                     chan.write(top);
                     if (top.hasRemaining()) {
@@ -99,11 +103,10 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
                 }
             }
 
+
             if (protocol.shouldTerminate()) {
                 close();
-                break;
             }
-        }
     }
 
     private static ByteBuffer leaseBuffer() {
@@ -123,6 +126,15 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
     public void send(T msg) {
         synchronized (writeQueue) {
             writeQueue.add(ByteBuffer.wrap(encdec.encode(msg)));
+            continueWrite();
         }
+    }
+
+    public void start() throws InterruptedException {
+        System.out.println("got to start");
+        send((T) new StringMessage("Start"));
+        Thread thread1= new Thread(this::continueRead);
+        thread1.start();
+        thread1.join();
     }
 }

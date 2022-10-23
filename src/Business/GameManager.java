@@ -18,18 +18,21 @@ public class GameManager {
     private final Map<UserMessageReceiver,Color> userColorMap;
 
 
-    public GameManager(TwoPlayerChessBoard board,UserMessageReceiver whiteMassageReceiver, UserMessageReceiver blackMassageReceiver) {
+    public GameManager(TwoPlayerChessBoard board,UserMessageReceiver whiteMassageReceiver) {
         this.board = board;
         this.src = null;
         this.colorTurn = Color.White;
         userColorMap = new HashMap<UserMessageReceiver,Color>();
         userColorMap.put(whiteMassageReceiver,Color.White);
+    }
+
+    public void start(UserMessageReceiver blackMassageReceiver){
         userColorMap.put(blackMassageReceiver,Color.Black);
-        System.out.println("i got here");
         sendTheBoardToThePlayers();
     }
 
     private void sendTheBoardToThePlayers() {
+        System.out.println("yep that's work");
         for (UserMessageReceiver user :
                 userColorMap.keySet()) {
             user.receiveBoardAsString(board.toString());

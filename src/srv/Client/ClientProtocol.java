@@ -29,8 +29,7 @@ public class ClientProtocol implements Protocol<Message> {
             //2) String message
             case 2:
                 StringMessage msg = (StringMessage) message;
-                System.out.println(msg);
-                shouldTerminate =true;
+                System.out.println(msg.getMsg());
                 break;
 
                 //3) PlacesMessage
@@ -42,6 +41,7 @@ public class ClientProtocol implements Protocol<Message> {
                 // Board change look message
             case 4:
                 BoardContentMessage boardContentMessage = (BoardContentMessage) message;
+                System.out.println(boardContentMessage.getBoardContent());
                 tableGui.setBoardAsString(boardContentMessage.getBoardContent());
         }
     }

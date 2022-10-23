@@ -626,7 +626,11 @@ public class TwoPlayerChessBoard {
                 pieces) {
             for (ChessPiece piece :
                     row) {
-                output.append(piece.toString());
+                if (piece != null)
+                    output.append(piece.toString());
+                else
+                    output.append("-");
+
             }
         }
         return output.toString();
