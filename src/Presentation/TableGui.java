@@ -55,7 +55,6 @@ public class TableGui {
         possibleDestinationsForChosenPiece = Collections.emptyList();
         this.isVisible = false;
         this.boardAsString = "";
-        System.out.println("finish tableGui constructor");
     }
 
     private JMenuBar createTableMenuBar() {
@@ -116,21 +115,21 @@ public class TableGui {
     public void setPossibleDestinationsForChosenPiece(Collection<Place> possibleDestinationsForChosenPiece){
         synchronized (lock){
             this.possibleDestinationsForChosenPiece = possibleDestinationsForChosenPiece;
-            boardPanel.drawBoard();
         }
     }
 
     public void reprint(){
-        System.out.println("start tableGui reprinting");
         boardPanel.drawBoard();
-        System.out.println("finish tableGui reprinting");
     }
 
     public void setBoardAsString(String board){
         this.boardAsString = board;
         if (!isVisible)
             gameFrame.setVisible(true);
-        reprint();
+    }
+
+    public void reverseTable() {
+        boardDirection = boardDirection.opposite();
     }
 
     private class BoardPanel extends JPanel {
@@ -153,10 +152,14 @@ public class TableGui {
             synchronized (lock){
                 removeAll();
                 List<TilePanel> tilePanels = boardDirection.traverse(boardTiles);
-                for (int i = 0; i < boardAsString.length(); i++) {
-                    tilePanels.get(i).drawTile(boardAsString.charAt(i));
+                int charPlaceInTheString = boardDirection == BoardDirection.NORMAL ? 0: 63;
+                int toAdd = boardDirection == BoardDirection.NORMAL ? 1: -1;
+                for (int i = 0; i<boardAsString.length(); charPlaceInTheString += toAdd, i++) {
+                    tilePanels.get(i).drawTile(boardAsString.charAt(charPlaceInTheString));
                     add(tilePanels.get(i));
                 }
+                repaint();
+                validate();
             }
            /* for (TilePanel tile :
                     boardDirection.traverse(boardTiles)) {

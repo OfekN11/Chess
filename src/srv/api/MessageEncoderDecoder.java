@@ -28,6 +28,10 @@ public class MessageEncoderDecoder implements MessageEncoderDecoderInterface<Mes
                     return new PlacesMessage(tmp);
                 case 4:
                     return new BoardContentMessage(tmp);
+                case 5:
+                    return new FinishGameMessage();
+                case 6:
+                    return new ColorMessage(tmp);
             }
         } else {
             if (lenOpcode < 2) {
@@ -70,13 +74,23 @@ public class MessageEncoderDecoder implements MessageEncoderDecoderInterface<Mes
                     builder.append(' ');
                 }
                 String output = builder.toString();
-                output = output.substring(0,output.length()-1);
+                if (output.length()>0)
+                    output = output.substring(0,output.length()-1);
                 content = output.getBytes();
                 break;
 
             case 4: // BoardMessage
                 BoardContentMessage boardMessage = (BoardContentMessage) message;
                 content = boardMessage.getBoardContent().getBytes();
+                break;
+
+            case 5: //finish game message
+                content =new byte[0];
+                break;
+
+            case 6: // color message
+                ColorMessage colorMessage = (ColorMessage) message;
+                content = colorMessage.getColor().toString().getBytes();
                 break;
             default:
                 content = new byte[0];

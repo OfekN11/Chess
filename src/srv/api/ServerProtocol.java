@@ -1,5 +1,6 @@
 package srv.api;
 
+import Business.Color;
 import Business.Controllers.BoardController;
 import Business.GameManager;
 import Business.Place;
@@ -33,9 +34,7 @@ public class ServerProtocol implements Protocol<Message>, UserMessageReceiver {
 
     @Override
     public void process(Message message) {
-        System.out.println("server protocol process got a message");
         short op = message.getOpcode();
-        System.out.println("message opcode is " + op);
         switch (op) {
 
             //1) PlaceMsg
@@ -48,9 +47,7 @@ public class ServerProtocol implements Protocol<Message>, UserMessageReceiver {
                 //string message
             case 2:
                 StringMessage message1 = (StringMessage) message;
-                System.out.println("server protocol process find stringMessage with the message :" + message1.getMsg());
                 if (message1.getMsg().equals("Start")) {
-                    System.out.println("got to serverProtocol, start message");
                     gameManager = gameManagerSupplier.get();
                 }
                 break;
@@ -77,5 +74,15 @@ public class ServerProtocol implements Protocol<Message>, UserMessageReceiver {
     @Override
     public void receiveBoardAsString(String boardString) {
         connections.send(handlerConnectionId, new BoardContentMessage(boardString));
+    }
+
+    @Override
+    public void gameFinishCallback() {
+        connections.send(handlerConnectionId,new FinishGameMessage());
+    }
+
+    @Override
+    public void receiveColor(Color color) {
+        connections.send(handlerConnectionId,new ColorMessage(color));
     }
 }

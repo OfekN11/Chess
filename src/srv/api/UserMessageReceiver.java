@@ -1,5 +1,7 @@
 package srv.api;
 
+import Business.Color;
+
 import java.util.Collection;
 
 public interface UserMessageReceiver {
@@ -8,4 +10,8 @@ public interface UserMessageReceiver {
     void receiveMsg(String s);
 
     void receiveBoardAsString(String boardString);
+
+    void gameFinishCallback();
+
+    void receiveColor(Color color);
 }

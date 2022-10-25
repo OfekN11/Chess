@@ -4,6 +4,7 @@ import Business.Boards.TwoPlayerChessBoard;
 import Business.ChessPieces.ChessPiece;
 import srv.api.UserMessageReceiver;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,11 +29,18 @@ public class GameManager {
 
     public void start(UserMessageReceiver blackMassageReceiver){
         userColorMap.put(blackMassageReceiver,Color.Black);
+        sendColorToThePlayers();
         sendTheBoardToThePlayers();
     }
 
+    private void sendColorToThePlayers() {
+        for (UserMessageReceiver userMessageReceiver :
+                userColorMap.keySet()) {
+            userMessageReceiver.receiveColor(userColorMap.get(userMessageReceiver));
+        }
+    }
+
     private void sendTheBoardToThePlayers() {
-        System.out.println("yep that's work");
         for (UserMessageReceiver user :
                 userColorMap.keySet()) {
             user.receiveBoardAsString(board.toString());
@@ -53,7 +61,8 @@ public class GameManager {
 
 
         if (chosenPlace == src) { // double click to cancel
-                resetVariables();
+            userMessageReceiver.receiveBoardAsString(board.toString());
+            resetVariables();
             return;
         }
 
@@ -79,7 +88,11 @@ public class GameManager {
         }
         else{
             short sh = 3;
-            userMessageReceiver.receiveCollection(board.calculateMovingOptions(src),sh);
+            Collection<Place> movingOptions  =board.calculateMovingOptions(src);
+            if (!movingOptions.isEmpty())
+                userMessageReceiver.receiveCollection(movingOptions,sh);
+            else
+                resetVariables();
         }
     }
 
@@ -94,20 +107,20 @@ public class GameManager {
                     for (UserMessageReceiver receiver :
                             userColorMap.keySet()) {
                         receiver.receiveMsg(Color.getOpponent(colorTurn, 2).get(0) + " has won");
+                        receiver.gameFinishCallback();
                     }
-                    System.exit(0);
 
                 } else if (board.isInPat(colorTurn)) {
                     for (UserMessageReceiver receiver :
                             userColorMap.keySet()) {
                         receiver.receiveMsg("its a tie!");
+                        receiver.gameFinishCallback();
                     }
-                    System.exit(0);
                 }
             }
 
-            resetVariables();
         }
+            resetVariables();
     }
 
     private void resetVariables() {

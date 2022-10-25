@@ -87,7 +87,6 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
     public void continueWrite() {
             if (!writeQueue.isEmpty()) {
                 try {
-                    System.out.println("client connection handler continue write has a massage");
                     ByteBuffer top = writeQueue.peek();
                     chan.write(top);
                     if (top.hasRemaining()) {
@@ -131,7 +130,6 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
     }
 
     public void start() throws InterruptedException {
-        System.out.println("got to start");
         send((T) new StringMessage("Start"));
         Thread thread1= new Thread(this::continueRead);
         thread1.start();
