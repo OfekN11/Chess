@@ -1,0 +1,19 @@
+package srv.api;
+
+import Business.GameManager;
+
+import java.util.function.Supplier;
+
+public interface Protocol<T>  {
+	/**
+	 * Used to initiate the current client protocol with its personal connection ID and the connections implementation
+	**/
+    void start(int connectionId, Connections<T> connections);
+    
+    void process(T message);
+	
+	/**
+     * @return true if the connection should be terminated
+     */
+    boolean shouldTerminate();
+}
