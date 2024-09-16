@@ -41,6 +41,7 @@ public class TableGui {
 
 
     public TableGui(ClickListener listener) {
+        this.boardDirection = BoardDirection.NORMAL;
         lock = new byte[1];
         this.clickListener = listener;
         this.gameFrame = new JFrame("Two Player Chess");
@@ -49,7 +50,6 @@ public class TableGui {
         this.gameFrame.setJMenuBar(tableMenuBar);
         this.gameFrame.setSize(FRAME_DIMENSION);
         this.boardPanel = new BoardPanel();
-        this.boardDirection = BoardDirection.NORMAL;
         this.highlightLegalMove = true;
         this.gameFrame.add(this.boardPanel, BorderLayout.CENTER);
         possibleDestinationsForChosenPiece = Collections.emptyList();
@@ -149,18 +149,19 @@ public class TableGui {
         }
 
         public void drawBoard() {
-            synchronized (lock){
-                removeAll();
-                List<TilePanel> tilePanels = boardDirection.traverse(boardTiles);
-                int charPlaceInTheString = boardDirection == BoardDirection.NORMAL ? 0: 63;
-                int toAdd = boardDirection == BoardDirection.NORMAL ? 1: -1;
-                for (int i = 0; i<boardAsString.length(); charPlaceInTheString += toAdd, i++) {
-                    tilePanels.get(i).drawTile(boardAsString.charAt(charPlaceInTheString));
-                    add(tilePanels.get(i));
+                synchronized (lock) {
+                    removeAll();
+                    List<TilePanel> tilePanels = boardDirection.traverse(boardTiles);
+                    int charPlaceInTheString = boardDirection == BoardDirection.NORMAL ? 0 : 63;
+                    int toAdd = boardDirection == BoardDirection.NORMAL ? 1 : -1;
+                    for (int i = 0; i < boardAsString.length(); charPlaceInTheString += toAdd, i++) {
+                        tilePanels.get(i).drawTile(boardAsString.charAt(charPlaceInTheString));
+                        add(tilePanels.get(i));
+                    }
+                    repaint();
+                    validate();
                 }
-                repaint();
-                validate();
-            }
+
            /* for (TilePanel tile :
                     boardDirection.traverse(boardTiles)) {
                 tile.drawTile();
@@ -277,8 +278,8 @@ public class TableGui {
                 if (possibleDestinationsForChosenPiece.contains(this.tilePlace)) {
                     try {
                         add(new JLabel(new ImageIcon(ImageIO.read(new File(PHOTOS_DIRECTORY_PATH + "green_dot.png")))));
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } catch (Exception ignore){
+
                     }
                 }
             }

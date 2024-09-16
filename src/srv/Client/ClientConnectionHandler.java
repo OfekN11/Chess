@@ -38,37 +38,37 @@ public class ClientConnectionHandler<T> implements ConnectionHandler<T> {
 
     public void continueRead() {
         while (true) {
-            ByteBuffer buf = leaseBuffer();
+                ByteBuffer buf = leaseBuffer();
 
-            boolean success = false;
-            try {
-                success = chan.read(buf) != -1;
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                close();
-                break;
-            }
-
-            if (success) {
-                buf.flip();
+                boolean success = false;
                 try {
-                    while (buf.hasRemaining()) {
-                        T nextMessage = encdec.decodeNextByte(buf.get());
-                        if (nextMessage != null) {
-                            protocol.process(nextMessage);
-                        }
-                    }
-                } finally {
-                    releaseBuffer(buf);
+                    success = chan.read(buf) != -1;
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    close();
+                    break;
                 }
 
-            } else {
-                releaseBuffer(buf);
-            }
-            if (protocol.shouldTerminate()) {
-                close();
-                break;
-            }
+                if (success) {
+                    buf.flip();
+                    try {
+                        while (buf.hasRemaining()) {
+                            T nextMessage = encdec.decodeNextByte(buf.get());
+                            if (nextMessage != null) {
+                                protocol.process(nextMessage);
+                            }
+                        }
+                    } finally {
+                        releaseBuffer(buf);
+                    }
+
+                } else {
+                    releaseBuffer(buf);
+                }
+                if (protocol.shouldTerminate()) {
+                    close();
+                    break;
+                }
         }
     }
 
